@@ -1,0 +1,52 @@
+[
+    {
+        "id": 1,
+        "userId": 1,
+        "amount": 756.51,
+        "createdAt": "2020-01-01T00:00:00.000Z",
+        "startDate": "2020-01-01T00:00:00.000Z",
+        "endDate": "2020-01-01T00:00:00.000Z",
+        "totalMatches": 10,
+        "nextPayoutDate": "2020-01-01T00:00:00.000Z"
+    },
+    {
+        "id": 2,
+        "userId": 1,
+        "amount": 312.54,
+        "createdAt": "2020-01-01T00:00:00.000Z",
+        "startDate": "2020-01-01T00:00:00.000Z",
+        "endDate": "2020-01-01T00:00:00.000Z",
+        "totalMatches": 10,
+        "nextPayoutDate": "2020-01-01T00:00:00.000Z"
+    },
+    {
+        "id": 3,
+        "userId": 2,
+        "amount": 421.23,
+        "createdAt": "2020-01-01T00:00:00.000Z",
+        "startDate": "2020-01-01T00:00:00.000Z",
+        "endDate": "2020-01-01T00:00:00.000Z",
+        "totalMatches": 10,
+        "nextPayoutDate": "2020-01-01T00:00:00.000Z"
+    },
+    {
+        "id": 4,
+        "userId": 2,
+        "amount": 125.54,
+        "createdAt": "2020-01-01T00:00:00.000Z",
+        "startDate": "2020-01-01T00:00:00.000Z",
+        "endDate": "2020-01-01T00:00:00.000Z",
+        "totalMatches": 10,
+        "nextPayoutDate": "2020-01-01T00:00:00.000Z"
+    },
+    {
+        "id": 5,
+        "userId": 3,
+        "amount": 1000,
+        "createdAt": "2020-01-01T00:00:00.000Z",
+        "startDate": "2020-01-01T00:00:00.000Z",
+        "endDate": "2020-01-01T00:00:00.000Z",
+        "totalMatches": 10,
+        "nextPayoutDate": "2020-01-01T00:00:00.000Z"
+    }
+]

@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "name": "John Doe",
+        "username": "johndoe",
+        "email": "test@test.com",
+        "address": {
+            "street": "123 Test St",
+            "suite": 1,
+            "city": "Test City",
+            "zipcode": 12345,
+            "geo": {
+                "lat": 123.123,
+                "lng": 123.123
+            }
+        },
+        "phone": 1234567890,
+        "createdAt": "2020-01-01T00:00:00.000Z"
+    },
+    {
+        "id": 2,
+        "name": "Jane Doe",
+        "username": "janedoe",
+        "email": "test1@test.com",
+        "address": {
+            "street": "123 Test St",
+            "suite": 1,
+            "city": "Test City",
+            "zipcode": 12345,
+            "geo": {
+                "lat": 123.123,
+                "lng": 123.123
+            }
+        },
+        "phone": 1234567890,
+        "createdAt": "2020-01-01T00:00:00.000Z"
+    }
+]

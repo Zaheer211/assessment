@@ -1,1 +1,19 @@
 /* You can add global styles to this file, and also import other style files */
+
+:root {
+    --primary-color: #29252D;
+    --secondary-color: #2ecc71;
+    --font-size-medium: 16px;
+    --font-size-large: 24px;
+    --primary-text-color: #fff;
+    --secondary-text-color: #666666;
+}
+
+body {
+    background-color: var(--primary-color);
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: var(--font-size-medium);
+    margin: 0;
+    padding: 0;
+}
