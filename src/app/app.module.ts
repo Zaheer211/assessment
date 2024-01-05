@@ -5,6 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -14,6 +15,7 @@ import { TranslateModule } from '@ngx-translate/core';
     BrowserModule,
     AppRoutingModule,
     TranslateModule.forRoot(),
+    BrowserAnimationsModule,
   ],
   providers: [TranslateService],
   bootstrap: [AppComponent]

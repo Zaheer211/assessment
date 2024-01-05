@@ -10,3 +10,12 @@
     align-items: center;
     font-size: var(--font-size-large);
 }
+
+.sub_heading {
+    /* width: 280px; */
+    display: flex;
+    margin-top: 48px;
+    justify-content: center;
+    align-items: center;
+    font-size: var(--font-size-medium);
+}

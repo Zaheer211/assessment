@@ -7,6 +7,7 @@
     --font-size-large: 24px;
     --primary-text-color: #fff;
     --secondary-text-color: #666666;
+
 }
 
 body {
@@ -17,3 +18,5 @@ body {
     margin: 0;
     padding: 0;
 }
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
