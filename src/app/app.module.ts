@@ -6,6 +6,8 @@ import { AppComponent } from './app.component';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular/standalone';
 
 @NgModule({
   declarations: [
@@ -16,8 +18,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     AppRoutingModule,
     TranslateModule.forRoot(),
     BrowserAnimationsModule,
+    IonicModule.forRoot({}),
   ],
-  providers: [TranslateService],
+  providers: [TranslateService, provideIonicAngular()],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

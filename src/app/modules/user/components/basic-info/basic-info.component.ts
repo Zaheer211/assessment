@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
+import { EditBasicInfoComponent } from '../edit-basic-info/edit-basic-info.component';
+import { ListItemModel } from 'nextsapien-component-lib';
 
 @Component({
   selector: 'app-basic-info',
@@ -7,7 +9,9 @@ import { Component } from '@angular/core';
 })
 export class BasicInfoComponent {
 
-  public listItems = [
+  @ViewChild(EditBasicInfoComponent) editBasicInfoComponentRef!: EditBasicInfoComponent;
+
+  public basicInfoItems: ListItemModel[] = [
     {
       label: "+1234567890",
       value: "1234567890",
@@ -18,7 +22,7 @@ export class BasicInfoComponent {
       value: "1234567890",
       labelIconName: "email",
       actionName: "Edit",
-      command: this.onListItemClick
+      command: this.editEmail.bind(this)
     },
     {
       label: "Username",
@@ -40,9 +44,12 @@ export class BasicInfoComponent {
     }
   ]
 
-  onListItemClick(item: any) {
-    console.log(item);
+  editEmail(item: any) {
+    this.editBasicInfoComponentRef.openEmailEditModal$.next(true);
+  }
 
+  onSubmitEmail(emailFormData: { email: string, password: string }) {
+    console.log(emailFormData);
   }
 
 }

@@ -1,0 +1,12 @@
+.container {
+    --toggle-background-on: #fe3c72;
+    --toggle-background-off: #29252d;
+    --toggle-box-shadow-on: 0 0 10px #fe3c72;
+    --toggle-box-shadow-off: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);
+    padding: 0px 40px;
+    max-width: var(--app-max-width);
+}
+
+::ng-deep .toggleList .circle-holder {
+    --padding: 0px !important;
+}

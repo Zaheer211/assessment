@@ -7,7 +7,8 @@ import { Component } from '@angular/core';
 })
 export class PayoutComponent {
 
-  public listItems = [
+  public heading: string = "Payout";
+  public payoutItems = [
     {
       label: "Manage Payment Information",
       value: "1234567890",

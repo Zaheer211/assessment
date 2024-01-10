@@ -1,0 +1,28 @@
+<lib-bottom-modal [(isOpen)]="isOpen" [title]="'Email info'" (submitModal)="onSubmitEditModal()"
+    [initialBreakpoint]="intialBottomModalBreakPoint" [breakpoints]="bottomModalBreakPoints"
+    (closeModal)="removePreventScroll()">
+    <form #formRef="ngForm" [formGroup]="emailForm" (ngSubmit)="onSubmitEditModal()">
+
+        <p class="infoText">
+            We will send you a verification code after entering your EmailID
+        </p>
+
+        <lib-input-field formControlName="email" label="Email" type="email"></lib-input-field>
+        <div class="error" *ngIf="email.touched && email.hasError('required')">
+            Required
+        </div>
+        <div class="error" *ngIf="email.touched && email.hasError('email')">
+            Invalid email
+        </div>
+        <br><br>
+        <lib-input-field formControlName="password" label="Password" type="password"></lib-input-field>
+        <div class="error" *ngIf="password.touched && password.hasError('required')">
+            Required
+        </div>
+        <br><br>
+
+        <lib-primary-btn [hoverOutline]="true" [disabled]="!emailForm.valid"
+            (click)="onSubmitEditModal()">Update</lib-primary-btn>
+        <br><br>
+    </form>
+</lib-bottom-modal>

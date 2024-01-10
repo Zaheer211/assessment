@@ -12,15 +12,9 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   public pageTitle: string = 'Account Info';
   private userId = 1;
-  private loadUserDataUnsub$: Subject<void> = new Subject<void>();
+  private destroy$: Subject<void> = new Subject<void>();
   private userData: User | undefined;
-  listItems = [
-    {
-      id: 1,
-      label: 'Item 1',
-      description: 'This is item 1'
-    }
-  ]
+
 
   constructor(
     private accountService: AccountService
@@ -31,14 +25,14 @@ export class AccountComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.loadUserDataUnsub$.next();
-    this.loadUserDataUnsub$.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadUserData(): void {
     this.accountService.getUserData(this.userId)
       .pipe(
-        takeUntil(this.loadUserDataUnsub$)
+        takeUntil(this.destroy$)
       )
       .subscribe({
         next: (user) => {

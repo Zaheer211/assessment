@@ -1,1 +1,18 @@
-<p>general-settings works!</p>
+<div class="container">
+
+    <lib-list [listItems]="otherListItems" [listTitle]="'Other'"></lib-list>
+
+    <br><br>
+    <lib-section-separator></lib-section-separator>
+    <br><br>
+
+    <lib-list [listItems]="securityAndPrivacyListItems" [listTitle]="'Security and Privacy'"></lib-list>
+
+    <br><br>
+    <lib-section-separator></lib-section-separator>
+    <br><br>
+
+    <lib-list-toggle [listItems]="testingListItems" [listTitle]="'Testing'"
+        [ngClass]="{'toggleList': true}"></lib-list-toggle>
+
+</div>

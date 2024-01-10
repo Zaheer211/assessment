@@ -1,23 +1,28 @@
 <div class="container">
 
-    <div class="main_heading">{{pageTitle}}</div>
+    <div class="header">
+        <div class="main_heading">{{pageTitle}}</div>
+    </div>
 
     <div class="stats">
 
-        <div class="member_since_text">
+        <div class="member_since_text tertiary_text">
             Member since 9-4-2023
         </div>
 
-        <div>
-            Dec 24-28
-            <br>
-            $453.45
-            <br>
-            32 matches in 88hr 10m
-            <br>
+        <div class="stats_data">
+            <div class="date_range sec_text">
+                Dec 24-28
+            </div>
+            <div class="amount">
+                <sup>$</sup><span>453</span><sup>.56</sup>
+            </div>
+            <div class="matches tertiary_text">
+                32 matches in 88hr 10m
+            </div>
             <lib-list-btn>Instant cash out $453.45</lib-list-btn>
 
-            <div>
+            <div class="next_payout tertiary_text">
                 Next payout Sat. Dec 30
             </div>
 
@@ -39,6 +44,19 @@
     <br><br>
     <lib-section-separator></lib-section-separator>
     <br><br>
+
+    <app-notifications-settings></app-notifications-settings>
+
+    <br><br>
+    <lib-section-separator></lib-section-separator>
+    <br><br>
+
+    <app-general-settings></app-general-settings>
+
+    <br><br>
+    <lib-section-separator></lib-section-separator>
+    <br><br>
+
     <app-membership></app-membership>
 
 </div>

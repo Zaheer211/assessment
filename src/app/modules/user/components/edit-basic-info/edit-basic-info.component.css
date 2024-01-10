@@ -1,0 +1,15 @@
+.error {
+    color: #FE3C72;
+    margin-left: 14px;
+    font-size: 12px;
+    margin-top: 7px;
+    font-weight: 300;
+    line-height: 7.86px;
+    size: 6.39px;
+    font: Poppins;
+}
+
+::ng-deep lib-input-field .input-field {
+    background-color: rgba(39, 36, 44, 1);
+    box-shadow: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);
+}

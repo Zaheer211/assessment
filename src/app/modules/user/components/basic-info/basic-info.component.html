@@ -1,9 +1,9 @@
-<div style="padding: 0px 40px;">
-    <!-- <div class="sub_heading">Basic Info</div> -->
-    <!-- <br><br> -->
+<div class="container">
 
-    <lib-list [listItems]="listItems" [listTitle]="'Basic Info'"></lib-list>
+    <lib-list [listItems]="basicInfoItems" [listTitle]="'Basic Info'"></lib-list>
 
     <lib-list-btn>Familiar places</lib-list-btn>
 
 </div>
+
+<app-edit-basic-info (onSubmitEmailEditModal)="onSubmitEmail($event)"></app-edit-basic-info>

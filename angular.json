@@ -106,6 +106,10 @@
           "options": {
             "configDir": ".storybook",
             "browserTarget": "assessment:build",
+            "styles": [
+              "@angular/material/prebuilt-themes/indigo-pink.css",
+              "src/styles.css"
+            ],
             "compodoc": true,
             "compodocArgs": [
               "-e",
@@ -121,6 +125,10 @@
           "options": {
             "configDir": ".storybook",
             "browserTarget": "assessment:build",
+            "styles": [
+              "@angular/material/prebuilt-themes/indigo-pink.css",
+              "src/styles.css"
+            ],
             "compodoc": true,
             "compodocArgs": [
               "-e",
