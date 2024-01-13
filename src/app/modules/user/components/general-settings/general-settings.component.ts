@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ListItemModel } from 'nextsapien-component-lib';
 
 @Component({
   selector: 'app-general-settings',
   templateUrl: './general-settings.component.html',
-  styleUrl: './general-settings.component.css'
+  styleUrl: './general-settings.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GeneralSettingsComponent {
 

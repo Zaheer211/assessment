@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { AccountService } from '../../services/account.service';
 import { Subject, takeUntil } from 'rxjs';
 import { User } from '../../interfaces/user';
@@ -6,7 +6,8 @@ import { User } from '../../interfaces/user';
 @Component({
   selector: 'app-account',
   templateUrl: './account.component.html',
-  styleUrl: './account.component.css'
+  styleUrl: './account.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountComponent implements OnInit, OnDestroy {
 

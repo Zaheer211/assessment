@@ -1,6 +1,6 @@
-import { Component, ElementRef, Input, Output, Renderer2 } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, Output, Renderer2 } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { BehaviorSubject, Subject, filter, takeUntil } from 'rxjs';
 import { EmailValidators } from '../../validators/email-validators';
 
 interface emailFormData {
@@ -11,12 +11,15 @@ interface emailFormData {
 @Component({
   selector: 'app-edit-basic-info',
   templateUrl: './edit-basic-info.component.html',
-  styleUrl: './edit-basic-info.component.css'
+  styleUrl: './edit-basic-info.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditBasicInfoComponent {
 
   @Output() public onSubmitEmailEditModal: Subject<emailFormData> = new Subject<emailFormData>();
 
+  private isOpenSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  public isOpen$ = this.isOpenSubject.asObservable().pipe(filter(value => value !== null)); // Add filter here
   public isOpen = false;
   public openEmailEditModal$: Subject<boolean> = new Subject<boolean>();
   private componentDestroy$: Subject<void> = new Subject<void>();
@@ -30,7 +33,8 @@ export class EditBasicInfoComponent {
   constructor(
     private formBuilder: FormBuilder,
     private renderer: Renderer2,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private cdr: ChangeDetectorRef
   ) {
     this.email = new FormControl<string | null>('', [
       Validators.required,
@@ -52,6 +56,8 @@ export class EditBasicInfoComponent {
             this.addPreventScroll();
           }
           this.isOpen = isOpen;
+          this.cdr.detectChanges();
+          this.isOpenSubject.next(isOpen);
         }
       })
   }
@@ -66,6 +72,8 @@ export class EditBasicInfoComponent {
 
       // Clost the modal
       this.isOpen = false;
+      this.cdr.detectChanges();
+      this.isOpenSubject.next(false);
 
       let formData: emailFormData = {
         email: this.emailForm.value.email,

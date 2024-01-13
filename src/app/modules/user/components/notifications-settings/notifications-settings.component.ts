@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ListItemModel } from 'nextsapien-component-lib';
 
 @Component({
   selector: 'app-notifications-settings',
   templateUrl: './notifications-settings.component.html',
-  styleUrl: './notifications-settings.component.css'
+  styleUrl: './notifications-settings.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificationsSettingsComponent {
 

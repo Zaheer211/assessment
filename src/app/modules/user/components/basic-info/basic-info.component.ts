@@ -1,11 +1,12 @@
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { EditBasicInfoComponent } from '../edit-basic-info/edit-basic-info.component';
 import { ListItemModel } from 'nextsapien-component-lib';
 
 @Component({
   selector: 'app-basic-info',
   templateUrl: './basic-info.component.html',
-  styleUrl: './basic-info.component.css'
+  styleUrl: './basic-info.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BasicInfoComponent {
 
