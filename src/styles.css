@@ -31,3 +31,12 @@ body {
 .prevent-scroll {
     overflow: hidden;
 }
+
+@font-face {
+    font-family: lato;
+    src: url(/assets/font/Gilroy-Regular.ttf) format("truetype");
+}
+
+.toggleList .circle-holder {
+    --padding: 0px !important;
+}

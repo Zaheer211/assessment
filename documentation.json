@@ -3,12 +3,12 @@
     "interfaces": [
         {
             "name": "emailFormData",
-            "id": "interface-emailFormData-c78989a5fe2e54761dd20071b675ee304b8efcfdc1455f493c11ef16642a7556ad63b3716f04bbfa48910beadbcfa83aa91758356aab3ea120365e04654349da",
+            "id": "interface-emailFormData-7a4162bb9c781e4306a9243b40ee8d3d480031000c490b22e603e547c7317ef1d12a5396fbc9103b9418a7720cb28774ce54b9f658f6a9772ae5ff8064f58a5b",
             "file": "src/app/modules/user/components/edit-basic-info/edit-basic-info.component.ts",
             "deprecated": false,
             "deprecationMessage": "",
             "type": "interface",
-            "sourceCode": "import { Component, ElementRef, Input, Output, Renderer2 } from '@angular/core';\nimport { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';\nimport { Subject, takeUntil } from 'rxjs';\nimport { EmailValidators } from '../../validators/email-validators';\n\ninterface emailFormData {\n  email: string;\n  password: string;\n}\n\n@Component({\n  selector: 'app-edit-basic-info',\n  templateUrl: './edit-basic-info.component.html',\n  styleUrl: './edit-basic-info.component.css'\n})\nexport class EditBasicInfoComponent {\n\n  @Output() public onSubmitEmailEditModal: Subject<emailFormData> = new Subject<emailFormData>();\n\n  public isOpen = false;\n  public openEmailEditModal$: Subject<boolean> = new Subject<boolean>();\n  private componentDestroy$: Subject<void> = new Subject<void>();\n  public emailForm: FormGroup;\n  public email: FormControl;\n  public password: FormControl;\n  public bottomModalBreakPoints = [0, 0.25, 0.5, 0.75]\n  public intialBottomModalBreakPoint = 0.5;\n  public onMobile = false;\n\n  constructor(\n    private formBuilder: FormBuilder,\n    private renderer: Renderer2,\n    private elementRef: ElementRef\n  ) {\n    this.email = new FormControl<string | null>('', [\n      Validators.required,\n      EmailValidators.isEmail(),\n    ]);\n    this.password = new FormControl<string | null>('', [Validators.required]);\n    this.emailForm = this.formBuilder.group({\n      email: this.email,\n      password: this.password,\n    });\n  }\n\n  ngOnInit(): void {\n    this.openEmailEditModal$\n      .pipe(takeUntil(this.componentDestroy$))\n      .subscribe({\n        next: (isOpen: boolean) => {\n          if (isOpen) {\n            this.addPreventScroll();\n          }\n          this.isOpen = isOpen;\n        }\n      })\n  }\n\n  ngOnDestroy(): void {\n    this.componentDestroy$.next();\n    this.componentDestroy$.complete();\n  }\n\n  public onSubmitEditModal(): void {\n    if (this.emailForm.valid) {\n\n      // Clost the modal\n      this.isOpen = false;\n\n      let formData: emailFormData = {\n        email: this.emailForm.value.email,\n        password: this.emailForm.value.password\n      }\n\n      // TODO: Send form data to account component\n      this.onSubmitEmailEditModal.next(formData);\n      this.removePreventScroll();\n    } else {\n      // TODO: Show error message\n    }\n  }\n\n  private addPreventScroll(): void {\n    this.renderer.addClass(this.elementRef.nativeElement.ownerDocument.body, 'prevent-scroll');\n  }\n\n  public removePreventScroll(): void {\n    this.renderer.removeClass(this.elementRef.nativeElement.ownerDocument.body, 'prevent-scroll');\n  }\n\n}\n",
+            "sourceCode": "import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, Output, Renderer2 } from '@angular/core';\nimport { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';\nimport { BehaviorSubject, Subject, filter, takeUntil } from 'rxjs';\n\ninterface emailFormData {\n  email: string;\n  password: string;\n}\n\n@Component({\n  selector: 'app-edit-basic-info',\n  templateUrl: './edit-basic-info.component.html',\n  styleUrls: ['./edit-basic-info.component.css', '../common.styles.css'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class EditBasicInfoComponent {\n\n  @Output() public onSubmitEmailEditModal: Subject<emailFormData> = new Subject<emailFormData>();\n\n  private isOpenSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);\n  public isOpen$ = this.isOpenSubject.asObservable().pipe(filter(value => value !== null)); // Add filter here\n  public isOpen = false;\n  public openEmailEditModal$: Subject<boolean> = new Subject<boolean>();\n  private componentDestroy$: Subject<void> = new Subject<void>();\n  public emailForm!: FormGroup;\n  public bottomModalBreakPoints = [0, 0.25, 0.5, 0.75]\n  public intialBottomModalBreakPoint = 0.5;\n  public onMobile = false;\n\n  constructor(\n    private formBuilder: FormBuilder,\n    private renderer: Renderer2,\n    private elementRef: ElementRef,\n    private cdr: ChangeDetectorRef\n  ) {\n\n  }\n\n  ngOnInit(): void {\n    this.setupEmailForm();\n    this.setupEmailFormBottomModalOpenSubscription();\n  }\n\n  private setupEmailForm(): void {\n    this.emailForm = this.formBuilder.group({\n      email: new FormControl<string | null>('', [\n        Validators.required,\n        Validators.email,\n      ]),\n      password: new FormControl<string | null>('', [Validators.required]),\n    });\n  }\n\n  private setupEmailFormBottomModalOpenSubscription(): void {\n    this.openEmailEditModal$\n      .pipe(takeUntil(this.componentDestroy$))\n      .subscribe({\n        next: (isOpen: boolean) => {\n          if (isOpen) {\n            this.addPreventScroll();\n          }\n          this.isOpen = isOpen;\n          this.cdr.detectChanges();\n          this.isOpenSubject.next(isOpen);\n        }\n      })\n  }\n\n  ngOnDestroy(): void {\n    this.componentDestroy$.next();\n    this.componentDestroy$.complete();\n  }\n\n  public onSubmitEditModal(): void {\n    if (this.emailForm.valid) {\n\n      // Clost the modal\n      this.isOpen = false;\n      this.cdr.detectChanges();\n      this.isOpenSubject.next(false);\n\n      let formData: emailFormData = {\n        email: this.emailForm.value.email,\n        password: this.emailForm.value.password\n      }\n\n      // TODO: Send form data to account component\n      this.onSubmitEmailEditModal.next(formData);\n      this.removePreventScroll();\n    } else {\n      // TODO: Show error message\n    }\n  }\n\n  private addPreventScroll(): void {\n    this.renderer.addClass(this.elementRef.nativeElement.ownerDocument.body, 'prevent-scroll');\n  }\n\n  public removePreventScroll(): void {\n    this.renderer.removeClass(this.elementRef.nativeElement.ownerDocument.body, 'prevent-scroll');\n  }\n\n}\n",
             "properties": [
                 {
                     "name": "email",
@@ -17,7 +17,7 @@
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 7
+                    "line": 6
                 },
                 {
                     "name": "password",
@@ -26,7 +26,7 @@
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 8
+                    "line": 7
                 }
             ],
             "indexSignatures": [],
@@ -345,15 +345,19 @@
     "components": [
         {
             "name": "AccountComponent",
-            "id": "component-AccountComponent-96a71e5e9c33dab77ef10b5a670502b8a56f85d00f38b9215a3b48a7cf963a314757a156113cc6ac8a8bffd52f72cfbe5d461b67b2eb70fe0a03965787f29678",
+            "id": "component-AccountComponent-37ecca930431be6b0ff273d73441ae82b2c2231765e570cbca98981735d72fe95ba5cf90c8a7975cb28221b88d6a86362fd6575249162d3482d223188717b268",
             "file": "src/app/modules/user/components/account/account.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
             "entryComponents": [],
             "inputs": [],
             "outputs": [],
             "providers": [],
             "selector": "app-account",
-            "styleUrls": [],
+            "styleUrls": [
+                "./account.component.css",
+                "../common.styles.css"
+            ],
             "styles": [],
             "templateUrl": [
                 "./account.component.html"
@@ -371,7 +375,7 @@
                     "type": "Subject<void>",
                     "optional": false,
                     "description": "",
-                    "line": 15,
+                    "line": 16,
                     "modifierKind": [
                         123
                     ]
@@ -384,7 +388,7 @@
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 13,
+                    "line": 14,
                     "modifierKind": [
                         125
                     ]
@@ -396,7 +400,7 @@
                     "type": "User | undefined",
                     "optional": false,
                     "description": "",
-                    "line": 16,
+                    "line": 17,
                     "modifierKind": [
                         123
                     ]
@@ -409,7 +413,7 @@
                     "type": "number",
                     "optional": false,
                     "description": "",
-                    "line": 14,
+                    "line": 15,
                     "modifierKind": [
                         123
                     ]
@@ -422,7 +426,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 32,
+                    "line": 33,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -432,7 +436,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 27,
+                    "line": 28,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -442,7 +446,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 23,
+                    "line": 24,
                     "deprecated": false,
                     "deprecationMessage": ""
                 }
@@ -456,10 +460,18 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component, OnDestroy, OnInit } from '@angular/core';\nimport { AccountService } from '../../services/account.service';\nimport { Subject, takeUntil } from 'rxjs';\nimport { User } from '../../interfaces/user';\n\n@Component({\n  selector: 'app-account',\n  templateUrl: './account.component.html',\n  styleUrl: './account.component.css'\n})\nexport class AccountComponent implements OnInit, OnDestroy {\n\n  public pageTitle: string = 'Account Info';\n  private userId = 1;\n  private destroy$: Subject<void> = new Subject<void>();\n  private userData: User | undefined;\n\n\n  constructor(\n    private accountService: AccountService\n  ) { }\n\n  ngOnInit(): void {\n    this.loadUserData();\n  }\n\n  ngOnDestroy(): void {\n    this.destroy$.next();\n    this.destroy$.complete();\n  }\n\n  loadUserData(): void {\n    this.accountService.getUserData(this.userId)\n      .pipe(\n        takeUntil(this.destroy$)\n      )\n      .subscribe({\n        next: (user) => {\n          console.log(user);\n          this.userData = user;\n        },\n        error: (error) => {\n          console.error(error);\n          // Handle error scenarios\n        }\n      });\n  }\n}\n",
-            "styleUrl": "./account.component.css",
+            "sourceCode": "import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';\nimport { AccountService } from '../../services/account.service';\nimport { Subject, takeUntil } from 'rxjs';\nimport { User } from '../../interfaces/user';\n\n@Component({\n  selector: 'app-account',\n  templateUrl: './account.component.html',\n  styleUrls: ['./account.component.css', '../common.styles.css'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class AccountComponent implements OnInit, OnDestroy {\n\n  public pageTitle: string = 'Account Info';\n  private userId = 1;\n  private destroy$: Subject<void> = new Subject<void>();\n  private userData: User | undefined;\n\n\n  constructor(\n    private accountService: AccountService\n  ) { }\n\n  ngOnInit(): void {\n    this.loadUserData();\n  }\n\n  ngOnDestroy(): void {\n    this.destroy$.next();\n    this.destroy$.complete();\n  }\n\n  loadUserData(): void {\n    this.accountService.getUserData(this.userId)\n      .pipe(\n        takeUntil(this.destroy$)\n      )\n      .subscribe({\n        next: (user) => {\n          this.userData = user;\n        },\n        error: (error) => {\n          // console.error(error);\n          // Handle error scenarios\n        }\n      });\n  }\n}\n",
             "assetsDirs": [],
-            "styleUrlsData": "",
+            "styleUrlsData": [
+                {
+                    "data": ".member_since_text {\n    margin-top: 40px;\n}\n\n.stats {\n    text-align: center;\n    padding: 0px 40px 10px 40px;\n}\n\n.stats_data {\n    display: flex;\n    flex-flow: column;\n    gap: 10px;\n}\n\n.tertiary_text {\n    color: var(--tertiary-text-color);\n    font-size: 12px;\n}\n\n.sec_text {\n    color: var(--secondary-text-color);\n    font-size: 12px;\n}\n\n.date_range {\n    margin-top: 10px;\n}\n\n.amount {\n    font-size: 38px;\n}\n\nsup {\n    font-size: 15px;\n}",
+                    "styleUrl": "./account.component.css"
+                },
+                {
+                    "data": ".container {\n    /* background-color: var(--primary-color); */\n    /* overflow-y: scroll; */\n    max-width: var(--app-max-width);\n    margin: 0 auto;\n}\n\n.header {\n    width: 100%;\n    margin-top: 50px;\n    text-align: center;\n    display: flex;\n    align-items: center;\n}\n\n.main_heading {\n    width: 100%;\n    font-family: Calistoga;\n    font-size: 16px;\n    font-weight: 400;\n    line-height: 26px;\n    letter-spacing: 0em;\n    text-align: center;\n\n}\n\n.inner_container {\n    padding: 0px 40px;\n    max-width: var(--app-max-width);\n    font-family: Gilroy-Regular;\n    --knob-color: #fff;\n    --toggle-background-on: #fe3c72;\n    --toggle-background-off: #29252d;\n    --toggle-box-shadow-on: 0 0 10px #fe3c72;\n    --toggle-box-shadow-off: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);\n}\n\n.section {\n    margin-top: 35px;\n}\n\n.section_content {\n    margin-top: 20px;\n}\n\n.mainActionButton {\n    --lib-list-button-font-size: 16px;\n    --lib-list-button-font-weight: 500;\n    --lib-list-button-font-family: Gilroy-Bold;\n}",
+                    "styleUrl": "../common.styles.css"
+                }
+            ],
             "stylesData": "",
             "constructorObj": {
                 "name": "constructor",
@@ -474,7 +486,7 @@
                         "deprecationMessage": ""
                     }
                 ],
-                "line": 16,
+                "line": 17,
                 "jsdoctags": [
                     {
                         "name": "accountService",
@@ -492,7 +504,7 @@
                 "OnInit",
                 "OnDestroy"
             ],
-            "templateData": "<div class=\"container\">\n\n    <div class=\"header\">\n        <div class=\"main_heading\">{{pageTitle}}</div>\n    </div>\n\n    <div class=\"stats\">\n\n        <div class=\"member_since_text tertiary_text\">\n            Member since 9-4-2023\n        </div>\n\n        <div class=\"stats_data\">\n            <div class=\"date_range sec_text\">\n                Dec 24-28\n            </div>\n            <div class=\"amount\">\n                <sup>$</sup><span>453</span><sup>.56</sup>\n            </div>\n            <div class=\"matches tertiary_text\">\n                32 matches in 88hr 10m\n            </div>\n            <lib-list-btn>Instant cash out $453.45</lib-list-btn>\n\n            <div class=\"next_payout tertiary_text\">\n                Next payout Sat. Dec 30\n            </div>\n\n        </div>\n\n    </div>\n\n    <br><br>\n    <lib-section-separator></lib-section-separator>\n\n    <app-basic-info></app-basic-info>\n\n    <br><br>\n\n    <lib-section-separator></lib-section-separator>\n\n    <app-payout></app-payout>\n\n    <br><br>\n    <lib-section-separator></lib-section-separator>\n    <br><br>\n\n    <app-notifications-settings></app-notifications-settings>\n\n    <br><br>\n    <lib-section-separator></lib-section-separator>\n    <br><br>\n\n    <app-general-settings></app-general-settings>\n\n    <br><br>\n    <lib-section-separator></lib-section-separator>\n    <br><br>\n\n    <app-membership></app-membership>\n\n</div>"
+            "templateData": "<div class=\"container\">\n\n    <div class=\"header\">\n        <div class=\"main_heading\">{{pageTitle}}</div>\n    </div>\n\n    <div class=\"stats\">\n\n        <div class=\"member_since_text tertiary_text\">\n            Member since 9-4-2023\n        </div>\n\n        <div class=\"stats_data\">\n            <div class=\"date_range sec_text\">\n                Dec 24-28\n            </div>\n            <div class=\"amount\">\n                <sup>$</sup><span>453</span><sup>.56</sup>\n            </div>\n            <div class=\"matches tertiary_text\">\n                32 matches in 88hr 10m\n            </div>\n            <lib-list-btn class=\"mainActionButton\">Instant cash out $453.45</lib-list-btn>\n\n            <div class=\"next_payout tertiary_text\">\n                Next payout Sat. Dec 30\n            </div>\n\n        </div>\n\n    </div>\n\n    <div class=\"section\">\n        <lib-section-separator></lib-section-separator>\n        <div class=\"section_content\">\n            <app-basic-info></app-basic-info>\n        </div>\n    </div>\n\n    <div class=\"section\">\n        <lib-section-separator></lib-section-separator>\n        <div class=\"section_content\">\n            <app-payout></app-payout>\n        </div>\n    </div>\n\n    <div class=\"section\">\n        <lib-section-separator></lib-section-separator>\n        <div class=\"section_content\">\n            <app-notifications-settings></app-notifications-settings>\n        </div>\n    </div>\n\n    <div class=\"section\">\n        <lib-section-separator></lib-section-separator>\n        <div class=\"section_content\">\n            <app-general-settings></app-general-settings>\n        </div>\n    </div>\n\n    <div class=\"section\">\n        <div class=\"section_content\">\n            <app-membership></app-membership>\n        </div>\n    </div>\n\n</div>"
         },
         {
             "name": "AppComponent",
@@ -545,15 +557,19 @@
         },
         {
             "name": "BasicInfoComponent",
-            "id": "component-BasicInfoComponent-96069f7c15b63f44188a96cc6024396b90efe2e7a84caea7ddcb0126288e91962f06e9234de64b23d8820f649d9e262269ab55af880f42e401d2c39988c2584c",
+            "id": "component-BasicInfoComponent-b7b2bc3f2755a9c80dceef25b10513364c28b11d7381c1093e211604520241b0e0cdcd28ed43fc3127f3cdad24a5514b8279496165006f91cea53c2942330111",
             "file": "src/app/modules/user/components/basic-info/basic-info.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
             "entryComponents": [],
             "inputs": [],
             "outputs": [],
             "providers": [],
             "selector": "app-basic-info",
-            "styleUrls": [],
+            "styleUrls": [
+                "./basic-info.component.css",
+                "../common.styles.css"
+            ],
             "styles": [],
             "templateUrl": [
                 "./basic-info.component.html"
@@ -565,13 +581,12 @@
             "propertiesClass": [
                 {
                     "name": "basicInfoItems",
-                    "defaultValue": "[\n    {\n      label: \"+1234567890\",\n      value: \"1234567890\",\n      labelIconName: \"phone\",\n    },\n    {\n      label: \"someone@mail.omc\",\n      value: \"1234567890\",\n      labelIconName: \"email\",\n      actionName: \"Edit\",\n      command: this.editEmail.bind(this)\n    },\n    {\n      label: \"Username\",\n      value: \"1234567890\",\n      labelIconName: \"name\",\n      actionName: \"Edit\",\n    },\n    {\n      label: \"Name\",\n      value: \"1234567890\",\n      labelIconName: \"contact\",\n      actionName: \"Edit\"\n    },\n    {\n      label: \"Password\",\n      value: \"1234567890\",\n      labelIconName: \"lock\",\n      actionName: \"Edit\"\n    }\n  ]",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "ListItemModel[]",
                     "optional": false,
                     "description": "",
-                    "line": 14,
+                    "line": 16,
                     "modifierKind": [
                         125
                     ]
@@ -583,7 +598,7 @@
                     "type": "EditBasicInfoComponent",
                     "optional": false,
                     "description": "",
-                    "line": 12,
+                    "line": 14,
                     "decorators": [
                         {
                             "name": "ViewChild",
@@ -598,31 +613,13 @@
             "methodsClass": [
                 {
                     "name": "editEmail",
-                    "args": [
-                        {
-                            "name": "item",
-                            "type": "any",
-                            "deprecated": false,
-                            "deprecationMessage": ""
-                        }
-                    ],
+                    "args": [],
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 47,
+                    "line": 26,
                     "deprecated": false,
-                    "deprecationMessage": "",
-                    "jsdoctags": [
-                        {
-                            "name": "item",
-                            "type": "any",
-                            "deprecated": false,
-                            "deprecationMessage": "",
-                            "tagName": {
-                                "text": "param"
-                            }
-                        }
-                    ]
+                    "deprecationMessage": ""
                 },
                 {
                     "name": "onSubmitEmail",
@@ -637,7 +634,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 51,
+                    "line": 30,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -651,6 +648,19 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "setBasicInfoItems",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 22,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        123
+                    ]
                 }
             ],
             "deprecated": false,
@@ -662,25 +672,45 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component, ViewChild } from '@angular/core';\nimport { EditBasicInfoComponent } from '../edit-basic-info/edit-basic-info.component';\nimport { ListItemModel } from 'nextsapien-component-lib';\n\n@Component({\n  selector: 'app-basic-info',\n  templateUrl: './basic-info.component.html',\n  styleUrl: './basic-info.component.css'\n})\nexport class BasicInfoComponent {\n\n  @ViewChild(EditBasicInfoComponent) editBasicInfoComponentRef!: EditBasicInfoComponent;\n\n  public basicInfoItems: ListItemModel[] = [\n    {\n      label: \"+1234567890\",\n      value: \"1234567890\",\n      labelIconName: \"phone\",\n    },\n    {\n      label: \"someone@mail.omc\",\n      value: \"1234567890\",\n      labelIconName: \"email\",\n      actionName: \"Edit\",\n      command: this.editEmail.bind(this)\n    },\n    {\n      label: \"Username\",\n      value: \"1234567890\",\n      labelIconName: \"name\",\n      actionName: \"Edit\",\n    },\n    {\n      label: \"Name\",\n      value: \"1234567890\",\n      labelIconName: \"contact\",\n      actionName: \"Edit\"\n    },\n    {\n      label: \"Password\",\n      value: \"1234567890\",\n      labelIconName: \"lock\",\n      actionName: \"Edit\"\n    }\n  ]\n\n  editEmail(item: any) {\n    this.editBasicInfoComponentRef.openEmailEditModal$.next(true);\n  }\n\n  onSubmitEmail(emailFormData: { email: string, password: string }) {\n    console.log(emailFormData);\n  }\n\n}\n",
-            "styleUrl": "./basic-info.component.css",
+            "sourceCode": "import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';\nimport { EditBasicInfoComponent } from '../edit-basic-info/edit-basic-info.component';\nimport { ListItemModel } from 'nextsapien-component-lib';\nimport getBasicInfoItems from './basicInfoItems';\n\n@Component({\n  selector: 'app-basic-info',\n  templateUrl: './basic-info.component.html',\n  styleUrls: ['./basic-info.component.css', '../common.styles.css'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class BasicInfoComponent {\n\n  @ViewChild(EditBasicInfoComponent) editBasicInfoComponentRef!: EditBasicInfoComponent;\n\n  public basicInfoItems!: ListItemModel[]\n\n  constructor() {\n    this.setBasicInfoItems()\n  }\n\n  private setBasicInfoItems() {\n    this.basicInfoItems = getBasicInfoItems(this.editEmail.bind(this))\n  }\n\n  editEmail() {\n    this.editBasicInfoComponentRef.openEmailEditModal$.next(true);\n  }\n\n  onSubmitEmail(emailFormData: { email: string, password: string }) {\n    // TODO: Handle email update\n  }\n\n}\n",
             "assetsDirs": [],
-            "styleUrlsData": "",
+            "styleUrlsData": [
+                {
+                    "data": ".sub_heading {\n    /* width: 280px; */\n    display: flex;\n    margin-top: 20px;\n    justify-content: center;\n    align-items: center;\n    font-size: var(--font-size-medium);\n}",
+                    "styleUrl": "./basic-info.component.css"
+                },
+                {
+                    "data": ".container {\n    /* background-color: var(--primary-color); */\n    /* overflow-y: scroll; */\n    max-width: var(--app-max-width);\n    margin: 0 auto;\n}\n\n.header {\n    width: 100%;\n    margin-top: 50px;\n    text-align: center;\n    display: flex;\n    align-items: center;\n}\n\n.main_heading {\n    width: 100%;\n    font-family: Calistoga;\n    font-size: 16px;\n    font-weight: 400;\n    line-height: 26px;\n    letter-spacing: 0em;\n    text-align: center;\n\n}\n\n.inner_container {\n    padding: 0px 40px;\n    max-width: var(--app-max-width);\n    font-family: Gilroy-Regular;\n    --knob-color: #fff;\n    --toggle-background-on: #fe3c72;\n    --toggle-background-off: #29252d;\n    --toggle-box-shadow-on: 0 0 10px #fe3c72;\n    --toggle-box-shadow-off: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);\n}\n\n.section {\n    margin-top: 35px;\n}\n\n.section_content {\n    margin-top: 20px;\n}\n\n.mainActionButton {\n    --lib-list-button-font-size: 16px;\n    --lib-list-button-font-weight: 500;\n    --lib-list-button-font-family: Gilroy-Bold;\n}",
+                    "styleUrl": "../common.styles.css"
+                }
+            ],
             "stylesData": "",
+            "constructorObj": {
+                "name": "constructor",
+                "description": "",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "args": [],
+                "line": 16
+            },
             "extends": [],
-            "templateData": "<div class=\"container\">\n\n    <lib-list [listItems]=\"basicInfoItems\" [listTitle]=\"'Basic Info'\"></lib-list>\n\n    <lib-list-btn>Familiar places</lib-list-btn>\n\n</div>\n\n<app-edit-basic-info (onSubmitEmailEditModal)=\"onSubmitEmail($event)\"></app-edit-basic-info>"
+            "templateData": "<div class=\"inner_container\">\n\n    <lib-list [listItems]=\"basicInfoItems\" [listTitle]=\"'Basic Info'\"></lib-list>\n\n    <lib-list-btn class=\"mainActionButton\">Familiar places</lib-list-btn>\n\n</div>\n\n<app-edit-basic-info (onSubmitEmailEditModal)=\"onSubmitEmail($event)\"></app-edit-basic-info>"
         },
         {
             "name": "EditBasicInfoComponent",
-            "id": "component-EditBasicInfoComponent-c78989a5fe2e54761dd20071b675ee304b8efcfdc1455f493c11ef16642a7556ad63b3716f04bbfa48910beadbcfa83aa91758356aab3ea120365e04654349da",
+            "id": "component-EditBasicInfoComponent-7a4162bb9c781e4306a9243b40ee8d3d480031000c490b22e603e547c7317ef1d12a5396fbc9103b9418a7720cb28774ce54b9f658f6a9772ae5ff8064f58a5b",
             "file": "src/app/modules/user/components/edit-basic-info/edit-basic-info.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
             "entryComponents": [],
             "inputs": [],
             "outputs": [],
             "providers": [],
             "selector": "app-edit-basic-info",
-            "styleUrls": [],
+            "styleUrls": [
+                "./edit-basic-info.component.css",
+                "../common.styles.css"
+            ],
             "styles": [],
             "templateUrl": [
                 "./edit-basic-info.component.html"
@@ -720,21 +750,9 @@
                     "type": "Subject<void>",
                     "optional": false,
                     "description": "",
-                    "line": 22,
-                    "modifierKind": [
-                        123
-                    ]
-                },
-                {
-                    "name": "email",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "FormControl",
-                    "optional": false,
-                    "description": "",
                     "line": 24,
                     "modifierKind": [
-                        125
+                        123
                     ]
                 },
                 {
@@ -744,7 +762,7 @@
                     "type": "FormGroup",
                     "optional": false,
                     "description": "",
-                    "line": 23,
+                    "line": 25,
                     "modifierKind": [
                         125
                     ]
@@ -770,9 +788,35 @@
                     "type": "",
                     "optional": false,
                     "description": "",
-                    "line": 20,
+                    "line": 22,
                     "modifierKind": [
                         125
+                    ]
+                },
+                {
+                    "name": "isOpen$",
+                    "defaultValue": "this.isOpenSubject.asObservable().pipe(filter(value => value !== null))",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 21,
+                    "modifierKind": [
+                        125
+                    ]
+                },
+                {
+                    "name": "isOpenSubject",
+                    "defaultValue": "new BehaviorSubject<boolean>(false)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "BehaviorSubject<boolean>",
+                    "optional": false,
+                    "description": "",
+                    "line": 20,
+                    "modifierKind": [
+                        123
                     ]
                 },
                 {
@@ -796,19 +840,7 @@
                     "type": "Subject<boolean>",
                     "optional": false,
                     "description": "",
-                    "line": 21,
-                    "modifierKind": [
-                        125
-                    ]
-                },
-                {
-                    "name": "password",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "FormControl",
-                    "optional": false,
-                    "description": "",
-                    "line": 25,
+                    "line": 23,
                     "modifierKind": [
                         125
                     ]
@@ -821,7 +853,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 83,
+                    "line": 95,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -834,7 +866,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 59,
+                    "line": 69,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -844,7 +876,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 46,
+                    "line": 39,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -854,7 +886,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 64,
+                    "line": 74,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -867,11 +899,37 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 87,
+                    "line": 99,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
                         125
+                    ]
+                },
+                {
+                    "name": "setupEmailForm",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 44,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        123
+                    ]
+                },
+                {
+                    "name": "setupEmailFormBottomModalOpenSubscription",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 54,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        123
                     ]
                 }
             ],
@@ -884,10 +942,18 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component, ElementRef, Input, Output, Renderer2 } from '@angular/core';\nimport { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';\nimport { Subject, takeUntil } from 'rxjs';\nimport { EmailValidators } from '../../validators/email-validators';\n\ninterface emailFormData {\n  email: string;\n  password: string;\n}\n\n@Component({\n  selector: 'app-edit-basic-info',\n  templateUrl: './edit-basic-info.component.html',\n  styleUrl: './edit-basic-info.component.css'\n})\nexport class EditBasicInfoComponent {\n\n  @Output() public onSubmitEmailEditModal: Subject<emailFormData> = new Subject<emailFormData>();\n\n  public isOpen = false;\n  public openEmailEditModal$: Subject<boolean> = new Subject<boolean>();\n  private componentDestroy$: Subject<void> = new Subject<void>();\n  public emailForm: FormGroup;\n  public email: FormControl;\n  public password: FormControl;\n  public bottomModalBreakPoints = [0, 0.25, 0.5, 0.75]\n  public intialBottomModalBreakPoint = 0.5;\n  public onMobile = false;\n\n  constructor(\n    private formBuilder: FormBuilder,\n    private renderer: Renderer2,\n    private elementRef: ElementRef\n  ) {\n    this.email = new FormControl<string | null>('', [\n      Validators.required,\n      EmailValidators.isEmail(),\n    ]);\n    this.password = new FormControl<string | null>('', [Validators.required]);\n    this.emailForm = this.formBuilder.group({\n      email: this.email,\n      password: this.password,\n    });\n  }\n\n  ngOnInit(): void {\n    this.openEmailEditModal$\n      .pipe(takeUntil(this.componentDestroy$))\n      .subscribe({\n        next: (isOpen: boolean) => {\n          if (isOpen) {\n            this.addPreventScroll();\n          }\n          this.isOpen = isOpen;\n        }\n      })\n  }\n\n  ngOnDestroy(): void {\n    this.componentDestroy$.next();\n    this.componentDestroy$.complete();\n  }\n\n  public onSubmitEditModal(): void {\n    if (this.emailForm.valid) {\n\n      // Clost the modal\n      this.isOpen = false;\n\n      let formData: emailFormData = {\n        email: this.emailForm.value.email,\n        password: this.emailForm.value.password\n      }\n\n      // TODO: Send form data to account component\n      this.onSubmitEmailEditModal.next(formData);\n      this.removePreventScroll();\n    } else {\n      // TODO: Show error message\n    }\n  }\n\n  private addPreventScroll(): void {\n    this.renderer.addClass(this.elementRef.nativeElement.ownerDocument.body, 'prevent-scroll');\n  }\n\n  public removePreventScroll(): void {\n    this.renderer.removeClass(this.elementRef.nativeElement.ownerDocument.body, 'prevent-scroll');\n  }\n\n}\n",
-            "styleUrl": "./edit-basic-info.component.css",
+            "sourceCode": "import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, Output, Renderer2 } from '@angular/core';\nimport { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';\nimport { BehaviorSubject, Subject, filter, takeUntil } from 'rxjs';\n\ninterface emailFormData {\n  email: string;\n  password: string;\n}\n\n@Component({\n  selector: 'app-edit-basic-info',\n  templateUrl: './edit-basic-info.component.html',\n  styleUrls: ['./edit-basic-info.component.css', '../common.styles.css'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class EditBasicInfoComponent {\n\n  @Output() public onSubmitEmailEditModal: Subject<emailFormData> = new Subject<emailFormData>();\n\n  private isOpenSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);\n  public isOpen$ = this.isOpenSubject.asObservable().pipe(filter(value => value !== null)); // Add filter here\n  public isOpen = false;\n  public openEmailEditModal$: Subject<boolean> = new Subject<boolean>();\n  private componentDestroy$: Subject<void> = new Subject<void>();\n  public emailForm!: FormGroup;\n  public bottomModalBreakPoints = [0, 0.25, 0.5, 0.75]\n  public intialBottomModalBreakPoint = 0.5;\n  public onMobile = false;\n\n  constructor(\n    private formBuilder: FormBuilder,\n    private renderer: Renderer2,\n    private elementRef: ElementRef,\n    private cdr: ChangeDetectorRef\n  ) {\n\n  }\n\n  ngOnInit(): void {\n    this.setupEmailForm();\n    this.setupEmailFormBottomModalOpenSubscription();\n  }\n\n  private setupEmailForm(): void {\n    this.emailForm = this.formBuilder.group({\n      email: new FormControl<string | null>('', [\n        Validators.required,\n        Validators.email,\n      ]),\n      password: new FormControl<string | null>('', [Validators.required]),\n    });\n  }\n\n  private setupEmailFormBottomModalOpenSubscription(): void {\n    this.openEmailEditModal$\n      .pipe(takeUntil(this.componentDestroy$))\n      .subscribe({\n        next: (isOpen: boolean) => {\n          if (isOpen) {\n            this.addPreventScroll();\n          }\n          this.isOpen = isOpen;\n          this.cdr.detectChanges();\n          this.isOpenSubject.next(isOpen);\n        }\n      })\n  }\n\n  ngOnDestroy(): void {\n    this.componentDestroy$.next();\n    this.componentDestroy$.complete();\n  }\n\n  public onSubmitEditModal(): void {\n    if (this.emailForm.valid) {\n\n      // Clost the modal\n      this.isOpen = false;\n      this.cdr.detectChanges();\n      this.isOpenSubject.next(false);\n\n      let formData: emailFormData = {\n        email: this.emailForm.value.email,\n        password: this.emailForm.value.password\n      }\n\n      // TODO: Send form data to account component\n      this.onSubmitEmailEditModal.next(formData);\n      this.removePreventScroll();\n    } else {\n      // TODO: Show error message\n    }\n  }\n\n  private addPreventScroll(): void {\n    this.renderer.addClass(this.elementRef.nativeElement.ownerDocument.body, 'prevent-scroll');\n  }\n\n  public removePreventScroll(): void {\n    this.renderer.removeClass(this.elementRef.nativeElement.ownerDocument.body, 'prevent-scroll');\n  }\n\n}\n",
             "assetsDirs": [],
-            "styleUrlsData": "",
+            "styleUrlsData": [
+                {
+                    "data": ".error {\n    color: #FE3C72;\n    margin-left: 14px;\n    font-size: 12px;\n    margin-top: 7px;\n    font-weight: 300;\n    line-height: 7.86px;\n    size: 6.39px;\n    font: Poppins;\n}\n\n::ng-deep lib-input-field .input-field {\n    background-color: rgba(39, 36, 44, 1);\n    box-shadow: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);\n}",
+                    "styleUrl": "./edit-basic-info.component.css"
+                },
+                {
+                    "data": ".container {\n    /* background-color: var(--primary-color); */\n    /* overflow-y: scroll; */\n    max-width: var(--app-max-width);\n    margin: 0 auto;\n}\n\n.header {\n    width: 100%;\n    margin-top: 50px;\n    text-align: center;\n    display: flex;\n    align-items: center;\n}\n\n.main_heading {\n    width: 100%;\n    font-family: Calistoga;\n    font-size: 16px;\n    font-weight: 400;\n    line-height: 26px;\n    letter-spacing: 0em;\n    text-align: center;\n\n}\n\n.inner_container {\n    padding: 0px 40px;\n    max-width: var(--app-max-width);\n    font-family: Gilroy-Regular;\n    --knob-color: #fff;\n    --toggle-background-on: #fe3c72;\n    --toggle-background-off: #29252d;\n    --toggle-box-shadow-on: 0 0 10px #fe3c72;\n    --toggle-box-shadow-off: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);\n}\n\n.section {\n    margin-top: 35px;\n}\n\n.section_content {\n    margin-top: 20px;\n}\n\n.mainActionButton {\n    --lib-list-button-font-size: 16px;\n    --lib-list-button-font-weight: 500;\n    --lib-list-button-font-family: Gilroy-Bold;\n}",
+                    "styleUrl": "../common.styles.css"
+                }
+            ],
             "stylesData": "",
             "constructorObj": {
                 "name": "constructor",
@@ -910,6 +976,12 @@
                     {
                         "name": "elementRef",
                         "type": "ElementRef",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    },
+                    {
+                        "name": "cdr",
+                        "type": "ChangeDetectorRef",
                         "deprecated": false,
                         "deprecationMessage": ""
                     }
@@ -942,23 +1014,36 @@
                         "tagName": {
                             "text": "param"
                         }
+                    },
+                    {
+                        "name": "cdr",
+                        "type": "ChangeDetectorRef",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
                     }
                 ]
             },
             "extends": [],
-            "templateData": "<lib-bottom-modal [(isOpen)]=\"isOpen\" [title]=\"'Email info'\" (submitModal)=\"onSubmitEditModal()\"\n    [initialBreakpoint]=\"intialBottomModalBreakPoint\" [breakpoints]=\"bottomModalBreakPoints\"\n    (closeModal)=\"removePreventScroll()\">\n    <form #formRef=\"ngForm\" [formGroup]=\"emailForm\" (ngSubmit)=\"onSubmitEditModal()\">\n\n        <p class=\"infoText\">\n            We will send you a verification code after entering your EmailID\n        </p>\n\n        <lib-input-field formControlName=\"email\" label=\"Email\" type=\"email\"></lib-input-field>\n        <div class=\"error\" *ngIf=\"email.touched && email.hasError('required')\">\n            Required\n        </div>\n        <div class=\"error\" *ngIf=\"email.touched && email.hasError('email')\">\n            Invalid email\n        </div>\n        <br><br>\n        <lib-input-field formControlName=\"password\" label=\"Password\" type=\"password\"></lib-input-field>\n        <div class=\"error\" *ngIf=\"password.touched && password.hasError('required')\">\n            Required\n        </div>\n        <br><br>\n\n        <lib-primary-btn [hoverOutline]=\"true\" [disabled]=\"!emailForm.valid\"\n            (click)=\"onSubmitEditModal()\">Update</lib-primary-btn>\n        <br><br>\n    </form>\n</lib-bottom-modal>"
+            "templateData": "<lib-bottom-modal [(isOpen)]=\"isOpen\" [title]=\"'Email info'\" (submitModal)=\"onSubmitEditModal()\"\n    [initialBreakpoint]=\"intialBottomModalBreakPoint\" [breakpoints]=\"bottomModalBreakPoints\"\n    (closeModal)=\"removePreventScroll()\">\n    <form #formRef=\"ngForm\" [formGroup]=\"emailForm\" (ngSubmit)=\"onSubmitEditModal()\">\n\n        <p class=\"infoText\">\n            We will send you a verification code after entering your EmailID\n        </p>\n\n        <lib-input-field formControlName=\"email\" label=\"Email\" type=\"email\"></lib-input-field>\n        <div class=\"error\" *ngIf=\"emailForm.get('email')?.touched && emailForm.get('email')?.hasError('required')\">\n            Required\n        </div>\n        <div class=\"error\" *ngIf=\"emailForm.get('email')?.touched && emailForm.get('email')?.hasError('email')\">\n            Invalid email\n        </div>\n        <br><br>\n        <lib-input-field formControlName=\"password\" label=\"Password\" type=\"password\"></lib-input-field>\n        <div class=\"error\"\n            *ngIf=\"emailForm.get('password')?.touched && emailForm.get('password')?.hasError('required')\">\n            Required\n        </div>\n        <br><br>\n\n        <lib-primary-btn [hoverOutline]=\"true\" [disabled]=\"!emailForm.valid\"\n            (click)=\"onSubmitEditModal()\">Update</lib-primary-btn>\n        <br><br>\n    </form>\n</lib-bottom-modal>"
         },
         {
             "name": "GeneralSettingsComponent",
-            "id": "component-GeneralSettingsComponent-d9c5655d8aef324637e06c45b0fb5423680893a8d80e7322f16607326b8fb9741b1514d036d1ae83b477b30c1f1b484b2f90b5981ee81b4fcc217afa5d82a9ec",
+            "id": "component-GeneralSettingsComponent-b5441260801e49af718945b3a782fffac609479a10eff3752bb6228c55b65c8249f888ade7479dc6bbe75dc1d6dd8ad6d82360c450af220c8cde58ceda88e37b",
             "file": "src/app/modules/user/components/general-settings/general-settings.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
             "entryComponents": [],
             "inputs": [],
             "outputs": [],
             "providers": [],
             "selector": "app-general-settings",
-            "styleUrls": [],
+            "styleUrls": [
+                "./general-settings.component.css",
+                "../common.styles.css"
+            ],
             "styles": [],
             "templateUrl": [
                 "./general-settings.component.html"
@@ -970,39 +1055,36 @@
             "propertiesClass": [
                 {
                     "name": "otherListItems",
-                    "defaultValue": "[\n    {\n      label: \"Language\",\n      value: \"lang\",\n      actionName: \"Edit\",\n      command: this.editLanguage.bind(this),\n    },\n    {\n      label: \"Rules & Terms\",\n      value: \"rulesAndTerms\",\n      command: this.openRulesAndTerms.bind(this),\n    },\n    {\n      label: \"FAQs\",\n      value: \"faqs\"\n    }\n  ]",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "ListItemModel[]",
                     "optional": false,
                     "description": "",
-                    "line": 12,
+                    "line": 14,
                     "modifierKind": [
                         125
                     ]
                 },
                 {
                     "name": "securityAndPrivacyListItems",
-                    "defaultValue": "[\n    {\n      label: \"Manage Access and Devices\",\n      value: \"manageAccessAndDevices\",\n      actionName: \"Edit\",\n    },\n    {\n      label: \"Sign Out of All Devices\",\n      value: \"signOutAllDevices\",\n      actionName: \"Edit\",\n    }\n  ]",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "ListItemModel[]",
                     "optional": false,
                     "description": "",
-                    "line": 30,
+                    "line": 15,
                     "modifierKind": [
                         125
                     ]
                 },
                 {
                     "name": "testingListItems",
-                    "defaultValue": "[\n    {\n      label: \"Testing Participation\",\n      value: \"testingParticipation\",\n      actionName: \"Toggle\",\n      command: this.testingParticipationToggle.bind(this),\n    }\n  ]",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "ListItemModel[]",
                     "optional": false,
                     "description": "",
-                    "line": 43,
+                    "line": 16,
                     "modifierKind": [
                         125
                     ]
@@ -1015,7 +1097,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 58,
+                    "line": 30,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -1028,7 +1110,20 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 62,
+                    "line": 34,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        123
+                    ]
+                },
+                {
+                    "name": "setListItems",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 24,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -1041,7 +1136,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 66,
+                    "line": 38,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -1058,10 +1153,18 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component } from '@angular/core';\nimport { Router } from '@angular/router';\nimport { ListItemModel } from 'nextsapien-component-lib';\n\n@Component({\n  selector: 'app-general-settings',\n  templateUrl: './general-settings.component.html',\n  styleUrl: './general-settings.component.css'\n})\nexport class GeneralSettingsComponent {\n\n  public otherListItems: ListItemModel[] = [\n    {\n      label: \"Language\",\n      value: \"lang\",\n      actionName: \"Edit\",\n      command: this.editLanguage.bind(this),\n    },\n    {\n      label: \"Rules & Terms\",\n      value: \"rulesAndTerms\",\n      command: this.openRulesAndTerms.bind(this),\n    },\n    {\n      label: \"FAQs\",\n      value: \"faqs\"\n    }\n  ]\n\n  public securityAndPrivacyListItems: ListItemModel[] = [\n    {\n      label: \"Manage Access and Devices\",\n      value: \"manageAccessAndDevices\",\n      actionName: \"Edit\",\n    },\n    {\n      label: \"Sign Out of All Devices\",\n      value: \"signOutAllDevices\",\n      actionName: \"Edit\",\n    }\n  ]\n\n  public testingListItems: ListItemModel[] = [\n    {\n      label: \"Testing Participation\",\n      value: \"testingParticipation\",\n      actionName: \"Toggle\",\n      command: this.testingParticipationToggle.bind(this),\n    }\n  ]\n\n  constructor(\n    private router: Router\n  ) {\n\n  }\n\n  private editLanguage() {\n    console.log(\"editLanguage\");\n  }\n\n  private openRulesAndTerms() {\n    this.router.navigate(['/rules-and-terms']);\n  }\n\n  private testingParticipationToggle() {\n    console.log(\"testingParticipationToggle\");\n  }\n\n}\n",
-            "styleUrl": "./general-settings.component.css",
+            "sourceCode": "import { ChangeDetectionStrategy, Component } from '@angular/core';\nimport { Router } from '@angular/router';\nimport { ListItemModel } from 'nextsapien-component-lib';\nimport { getOtherListItems, getSecurityAndPrivacyListItems, getTestingListItems } from './listItems';\n\n@Component({\n  selector: 'app-general-settings',\n  templateUrl: './general-settings.component.html',\n  styleUrls: ['./general-settings.component.css', '../common.styles.css'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class GeneralSettingsComponent {\n\n  public otherListItems!: ListItemModel[]\n  public securityAndPrivacyListItems!: ListItemModel[]\n  public testingListItems!: ListItemModel[]\n\n  constructor(\n    private router: Router\n  ) {\n    this.setListItems()\n  }\n\n  private setListItems() {\n    this.otherListItems = getOtherListItems(this.editLanguage.bind(this), this.openRulesAndTerms.bind(this))\n    this.securityAndPrivacyListItems = getSecurityAndPrivacyListItems()\n    this.testingListItems = getTestingListItems(this.testingParticipationToggle.bind(this))\n  }\n\n  private editLanguage() {\n    // TODO: Implement language change\n  }\n\n  private openRulesAndTerms() {\n    this.router.navigate(['/rules-and-terms']);\n  }\n\n  private testingParticipationToggle() {\n    // TODO: Implement testing participation toggle\n  }\n\n}\n",
             "assetsDirs": [],
-            "styleUrlsData": "",
+            "styleUrlsData": [
+                {
+                    "data": "",
+                    "styleUrl": "./general-settings.component.css"
+                },
+                {
+                    "data": ".container {\n    /* background-color: var(--primary-color); */\n    /* overflow-y: scroll; */\n    max-width: var(--app-max-width);\n    margin: 0 auto;\n}\n\n.header {\n    width: 100%;\n    margin-top: 50px;\n    text-align: center;\n    display: flex;\n    align-items: center;\n}\n\n.main_heading {\n    width: 100%;\n    font-family: Calistoga;\n    font-size: 16px;\n    font-weight: 400;\n    line-height: 26px;\n    letter-spacing: 0em;\n    text-align: center;\n\n}\n\n.inner_container {\n    padding: 0px 40px;\n    max-width: var(--app-max-width);\n    font-family: Gilroy-Regular;\n    --knob-color: #fff;\n    --toggle-background-on: #fe3c72;\n    --toggle-background-off: #29252d;\n    --toggle-box-shadow-on: 0 0 10px #fe3c72;\n    --toggle-box-shadow-off: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);\n}\n\n.section {\n    margin-top: 35px;\n}\n\n.section_content {\n    margin-top: 20px;\n}\n\n.mainActionButton {\n    --lib-list-button-font-size: 16px;\n    --lib-list-button-font-weight: 500;\n    --lib-list-button-font-family: Gilroy-Bold;\n}",
+                    "styleUrl": "../common.styles.css"
+                }
+            ],
             "stylesData": "",
             "constructorObj": {
                 "name": "constructor",
@@ -1076,7 +1179,7 @@
                         "deprecationMessage": ""
                     }
                 ],
-                "line": 50,
+                "line": 16,
                 "jsdoctags": [
                     {
                         "name": "router",
@@ -1090,19 +1193,23 @@
                 ]
             },
             "extends": [],
-            "templateData": "<div class=\"container\">\n\n    <lib-list [listItems]=\"otherListItems\" [listTitle]=\"'Other'\"></lib-list>\n\n    <br><br>\n    <lib-section-separator></lib-section-separator>\n    <br><br>\n\n    <lib-list [listItems]=\"securityAndPrivacyListItems\" [listTitle]=\"'Security and Privacy'\"></lib-list>\n\n    <br><br>\n    <lib-section-separator></lib-section-separator>\n    <br><br>\n\n    <lib-list-toggle [listItems]=\"testingListItems\" [listTitle]=\"'Testing'\"\n        [ngClass]=\"{'toggleList': true}\"></lib-list-toggle>\n\n</div>"
+            "templateData": "<div class=\"inner_container\">\n\n    <lib-list [listItems]=\"otherListItems\" [listTitle]=\"'Other'\"></lib-list>\n\n\n    <div class=\"section\">\n        <lib-section-separator></lib-section-separator>\n        <div class=\"section_content\">\n            <lib-list [listItems]=\"securityAndPrivacyListItems\" [listTitle]=\"'Security and Privacy'\"></lib-list>\n        </div>\n    </div>\n\n    <div class=\"section\">\n        <lib-section-separator></lib-section-separator>\n        <div class=\"section_content\">\n            <lib-list-toggle [listItems]=\"testingListItems\" [listTitle]=\"'Testing'\"\n                [ngClass]=\"{'toggleList': true}\"></lib-list-toggle>\n        </div>\n    </div>\n\n</div>"
         },
         {
             "name": "MembershipComponent",
-            "id": "component-MembershipComponent-682811975fa87bf3776936eb180c90248257673650648af6c4be73fb3c01700b2f1b932955ae905599b219d298c41405c127c24088b9fe02cfd0be0fa02c50e5",
+            "id": "component-MembershipComponent-c2b3251e68d772c510af25122e3f75f5a7221792301cfa2db6d5e86da9c76c82afecfb8fe5729ad9dfff6a796c36c0b2e6caabd6ed7b7c0640bdd37e6ad61e96",
             "file": "src/app/modules/user/components/membership/membership.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
             "entryComponents": [],
             "inputs": [],
             "outputs": [],
             "providers": [],
             "selector": "app-membership",
-            "styleUrls": [],
+            "styleUrls": [
+                "./membership.component.css",
+                "../common.styles.css"
+            ],
             "styles": [],
             "templateUrl": [
                 "./membership.component.html"
@@ -1122,25 +1229,37 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component } from '@angular/core';\n\n@Component({\n  selector: 'app-membership',\n  templateUrl: './membership.component.html',\n  styleUrl: './membership.component.css'\n})\nexport class MembershipComponent {\n\n}\n",
-            "styleUrl": "./membership.component.css",
+            "sourceCode": "import { ChangeDetectionStrategy, Component } from '@angular/core';\n\n@Component({\n  selector: 'app-membership',\n  templateUrl: './membership.component.html',\n  styleUrls: ['./membership.component.css', '../common.styles.css'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class MembershipComponent {\n\n}\n",
             "assetsDirs": [],
-            "styleUrlsData": "",
+            "styleUrlsData": [
+                {
+                    "data": ":root {\n    --lib-primary-button-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);\n}\n\n.membership_settings {\n    --lib-button-font-color: rgba(168, 168, 168, 1);\n    display: flex;\n    flex-flow: column;\n    gap: 25px;\n    padding-bottom: 20px;\n    max-width: var(--app-max-width);\n}",
+                    "styleUrl": "./membership.component.css"
+                },
+                {
+                    "data": ".container {\n    /* background-color: var(--primary-color); */\n    /* overflow-y: scroll; */\n    max-width: var(--app-max-width);\n    margin: 0 auto;\n}\n\n.header {\n    width: 100%;\n    margin-top: 50px;\n    text-align: center;\n    display: flex;\n    align-items: center;\n}\n\n.main_heading {\n    width: 100%;\n    font-family: Calistoga;\n    font-size: 16px;\n    font-weight: 400;\n    line-height: 26px;\n    letter-spacing: 0em;\n    text-align: center;\n\n}\n\n.inner_container {\n    padding: 0px 40px;\n    max-width: var(--app-max-width);\n    font-family: Gilroy-Regular;\n    --knob-color: #fff;\n    --toggle-background-on: #fe3c72;\n    --toggle-background-off: #29252d;\n    --toggle-box-shadow-on: 0 0 10px #fe3c72;\n    --toggle-box-shadow-off: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);\n}\n\n.section {\n    margin-top: 35px;\n}\n\n.section_content {\n    margin-top: 20px;\n}\n\n.mainActionButton {\n    --lib-list-button-font-size: 16px;\n    --lib-list-button-font-weight: 500;\n    --lib-list-button-font-family: Gilroy-Bold;\n}",
+                    "styleUrl": "../common.styles.css"
+                }
+            ],
             "stylesData": "",
             "extends": [],
-            "templateData": "<div class=\"membership_settings\">\n\n    <lib-primary-btn>Pause Membership </lib-primary-btn>\n    <lib-primary-btn>Cancel Membership </lib-primary-btn>\n    <lib-primary-btn>Deactivate Account </lib-primary-btn>\n    <lib-primary-btn>Delete Account </lib-primary-btn>\n\n</div>"
+            "templateData": "<div class=\"membership_settings\">\n\n    <lib-primary-btn [disableTextShadow]=\"true\">Pause Membership </lib-primary-btn>\n    <lib-primary-btn [disableTextShadow]=\"true\">Cancel Membership </lib-primary-btn>\n    <lib-primary-btn [disableTextShadow]=\"true\">Deactivate Account </lib-primary-btn>\n    <lib-primary-btn [disableTextShadow]=\"true\">Delete Account </lib-primary-btn>\n\n</div>"
         },
         {
             "name": "NotificationsSettingsComponent",
-            "id": "component-NotificationsSettingsComponent-adc8843752129b36e117ed4435c1a690f199b89e08543ff033c0a74af78934b916f65ffae7b0aa3645c3eaf22c634017a1870e1b347abee1ea589934ebaeb334",
+            "id": "component-NotificationsSettingsComponent-b48bd53879b001c98869bf8e1fc49c9022da8cd3039838deffada6d8305bf34e50f2b5d520db614de8ce10a1bfff15f8337718650e3d8c0ee5626261137fcaae",
             "file": "src/app/modules/user/components/notifications-settings/notifications-settings.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
             "entryComponents": [],
             "inputs": [],
             "outputs": [],
             "providers": [],
             "selector": "app-notifications-settings",
-            "styleUrls": [],
+            "styleUrls": [
+                "./notifications-settings.component.css",
+                "../common.styles.css"
+            ],
             "styles": [],
             "templateUrl": [
                 "./notifications-settings.component.html"
@@ -1152,13 +1271,12 @@
             "propertiesClass": [
                 {
                     "name": "listItems",
-                    "defaultValue": "[\n    {\n      label: \"In-app notifications\",\n      value: \"inApp\",\n      actionName: \"Toggle\",\n      command: this.inAppNotificationsToggle.bind(this),\n    },\n    {\n      label: \"Push notifications\",\n      value: \"push\",\n      actionName: \"Toggle\",\n      command: this.pushNotificationsToggle.bind(this),\n    },\n    {\n      label: \"Email notifications\",\n      value: \"email\",\n      actionName: \"Toggle\",\n      command: this.emailNotificationsToggle.bind(this),\n    }\n  ]",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "ListItemModel[]",
                     "optional": false,
                     "description": "",
-                    "line": 12,
+                    "line": 14,
                     "modifierKind": [
                         125
                     ]
@@ -1171,7 +1289,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 41,
+                    "line": 37,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -1184,7 +1302,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 33,
+                    "line": 29,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -1197,7 +1315,20 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 37,
+                    "line": 33,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "modifierKind": [
+                        123
+                    ]
+                },
+                {
+                    "name": "setNotificationsListItems",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 21,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -1214,25 +1345,45 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component } from '@angular/core';\nimport { ListItemModel } from 'nextsapien-component-lib';\n\n@Component({\n  selector: 'app-notifications-settings',\n  templateUrl: './notifications-settings.component.html',\n  styleUrl: './notifications-settings.component.css'\n})\nexport class NotificationsSettingsComponent {\n\n\n  public listItems: ListItemModel[] = [\n    {\n      label: \"In-app notifications\",\n      value: \"inApp\",\n      actionName: \"Toggle\",\n      command: this.inAppNotificationsToggle.bind(this),\n    },\n    {\n      label: \"Push notifications\",\n      value: \"push\",\n      actionName: \"Toggle\",\n      command: this.pushNotificationsToggle.bind(this),\n    },\n    {\n      label: \"Email notifications\",\n      value: \"email\",\n      actionName: \"Toggle\",\n      command: this.emailNotificationsToggle.bind(this),\n    }\n  ]\n\n  private inAppNotificationsToggle() {\n    console.log(\"inAppNotificationsToggle\");\n  }\n\n  private pushNotificationsToggle() {\n    console.log(\"pushNotificationsToggle\");\n  }\n\n  private emailNotificationsToggle() {\n    console.log(\"emailNotificationsToggle\");\n  }\n\n}\n",
-            "styleUrl": "./notifications-settings.component.css",
+            "sourceCode": "import { ChangeDetectionStrategy, Component } from '@angular/core';\nimport { ListItemModel } from 'nextsapien-component-lib';\nimport getNotificationsListItems from './notificationsListItems';\n\n@Component({\n  selector: 'app-notifications-settings',\n  templateUrl: './notifications-settings.component.html',\n  styleUrls: ['./notifications-settings.component.css', '../common.styles.css'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class NotificationsSettingsComponent {\n\n\n  public listItems!: ListItemModel[]\n\n  constructor(\n  ) {\n    this.setNotificationsListItems()\n  }\n\n  private setNotificationsListItems() {\n    this.listItems = getNotificationsListItems(\n      this.inAppNotificationsToggle.bind(this),\n      this.pushNotificationsToggle.bind(this),\n      this.emailNotificationsToggle.bind(this)\n    )\n  }\n\n  private inAppNotificationsToggle() {\n    // TODO: Implement in-app notifications toggle\n  }\n\n  private pushNotificationsToggle() {\n    // TODO: Implement push notifications toggle\n  }\n\n  private emailNotificationsToggle() {\n    // TODO: Implement email notifications toggle\n  }\n\n}\n",
             "assetsDirs": [],
-            "styleUrlsData": "",
+            "styleUrlsData": [
+                {
+                    "data": "",
+                    "styleUrl": "./notifications-settings.component.css"
+                },
+                {
+                    "data": ".container {\n    /* background-color: var(--primary-color); */\n    /* overflow-y: scroll; */\n    max-width: var(--app-max-width);\n    margin: 0 auto;\n}\n\n.header {\n    width: 100%;\n    margin-top: 50px;\n    text-align: center;\n    display: flex;\n    align-items: center;\n}\n\n.main_heading {\n    width: 100%;\n    font-family: Calistoga;\n    font-size: 16px;\n    font-weight: 400;\n    line-height: 26px;\n    letter-spacing: 0em;\n    text-align: center;\n\n}\n\n.inner_container {\n    padding: 0px 40px;\n    max-width: var(--app-max-width);\n    font-family: Gilroy-Regular;\n    --knob-color: #fff;\n    --toggle-background-on: #fe3c72;\n    --toggle-background-off: #29252d;\n    --toggle-box-shadow-on: 0 0 10px #fe3c72;\n    --toggle-box-shadow-off: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);\n}\n\n.section {\n    margin-top: 35px;\n}\n\n.section_content {\n    margin-top: 20px;\n}\n\n.mainActionButton {\n    --lib-list-button-font-size: 16px;\n    --lib-list-button-font-weight: 500;\n    --lib-list-button-font-family: Gilroy-Bold;\n}",
+                    "styleUrl": "../common.styles.css"
+                }
+            ],
             "stylesData": "",
+            "constructorObj": {
+                "name": "constructor",
+                "description": "",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "args": [],
+                "line": 14
+            },
             "extends": [],
-            "templateData": "<div class=\"container\">\n    <lib-list-toggle [listItems]=\"listItems\" [listTitle]=\"'Notifications'\"\n        [ngClass]=\"{'toggleList': true}\"></lib-list-toggle>\n</div>"
+            "templateData": "<div class=\"inner_container\">\n    <lib-list-toggle [listItems]=\"listItems\" [listTitle]=\"'Notifications'\"\n        [ngClass]=\"{'toggleList': true}\"></lib-list-toggle>\n</div>"
         },
         {
             "name": "PayoutComponent",
-            "id": "component-PayoutComponent-f7fc0cd2078dcdda57bb2c9e3f9c5f17d1974ebad44647d029139262984dc46efbfe91150468c39e9f623acf451564e25d9016aad47cc12b60755c61413c6c13",
+            "id": "component-PayoutComponent-ad2cd9e7b2ff24d715aaa0e08a594dc307838f55479e320f41fd539fb5457dc95e1359e1d788d1c047a8f9505e28a866ad97c63f631945b62ceb056e590ea9da",
             "file": "src/app/modules/user/components/payout/payout.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
             "entryComponents": [],
             "inputs": [],
             "outputs": [],
             "providers": [],
             "selector": "app-payout",
-            "styleUrls": [],
+            "styleUrls": [
+                "./payout.component.css",
+                "../common.styles.css"
+            ],
             "styles": [],
             "templateUrl": [
                 "./payout.component.html"
@@ -1250,20 +1401,20 @@
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 10,
+                    "line": 12,
                     "modifierKind": [
                         125
                     ]
                 },
                 {
                     "name": "payoutItems",
-                    "defaultValue": "[\n    {\n      label: \"Manage Payment Information\",\n      value: \"1234567890\",\n    },\n    {\n      label: \"Add Backup Payment Method\",\n      value: \"1234567890\",\n    },\n    {\n      label: \"Payout Information\",\n      value: \"1234567890\",\n    },\n    {\n      label: \"Change Payout Day\",\n      value: \"1234567890\",\n    },\n    {\n      label: \"Redeem Gift Card or Promo Code\",\n      value: \"1234567890\",\n    },\n    {\n      label: \"Where to Buy Gift Cards\",\n      value: \"1234567890\",\n    }\n  ]",
+                    "defaultValue": "getPayoutListItems()",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "type": "[]",
+                    "type": "",
                     "optional": false,
                     "description": "",
-                    "line": 11,
+                    "line": 13,
                     "modifierKind": [
                         125
                     ]
@@ -1279,25 +1430,37 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component } from '@angular/core';\n\n@Component({\n  selector: 'app-payout',\n  templateUrl: './payout.component.html',\n  styleUrl: './payout.component.css'\n})\nexport class PayoutComponent {\n\n  public heading: string = \"Payout\";\n  public payoutItems = [\n    {\n      label: \"Manage Payment Information\",\n      value: \"1234567890\",\n    },\n    {\n      label: \"Add Backup Payment Method\",\n      value: \"1234567890\",\n    },\n    {\n      label: \"Payout Information\",\n      value: \"1234567890\",\n    },\n    {\n      label: \"Change Payout Day\",\n      value: \"1234567890\",\n    },\n    {\n      label: \"Redeem Gift Card or Promo Code\",\n      value: \"1234567890\",\n    },\n    {\n      label: \"Where to Buy Gift Cards\",\n      value: \"1234567890\",\n    }\n  ]\n\n}\n",
-            "styleUrl": "./payout.component.css",
+            "sourceCode": "import { ChangeDetectionStrategy, Component } from '@angular/core';\nimport getPayoutListItems from './payoutItems';\n\n@Component({\n  selector: 'app-payout',\n  templateUrl: './payout.component.html',\n  styleUrls: ['./payout.component.css', '../common.styles.css'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class PayoutComponent {\n\n  public heading: string = \"Payout\";\n  public payoutItems = getPayoutListItems()\n\n}\n",
             "assetsDirs": [],
-            "styleUrlsData": "",
+            "styleUrlsData": [
+                {
+                    "data": "",
+                    "styleUrl": "./payout.component.css"
+                },
+                {
+                    "data": ".container {\n    /* background-color: var(--primary-color); */\n    /* overflow-y: scroll; */\n    max-width: var(--app-max-width);\n    margin: 0 auto;\n}\n\n.header {\n    width: 100%;\n    margin-top: 50px;\n    text-align: center;\n    display: flex;\n    align-items: center;\n}\n\n.main_heading {\n    width: 100%;\n    font-family: Calistoga;\n    font-size: 16px;\n    font-weight: 400;\n    line-height: 26px;\n    letter-spacing: 0em;\n    text-align: center;\n\n}\n\n.inner_container {\n    padding: 0px 40px;\n    max-width: var(--app-max-width);\n    font-family: Gilroy-Regular;\n    --knob-color: #fff;\n    --toggle-background-on: #fe3c72;\n    --toggle-background-off: #29252d;\n    --toggle-box-shadow-on: 0 0 10px #fe3c72;\n    --toggle-box-shadow-off: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);\n}\n\n.section {\n    margin-top: 35px;\n}\n\n.section_content {\n    margin-top: 20px;\n}\n\n.mainActionButton {\n    --lib-list-button-font-size: 16px;\n    --lib-list-button-font-weight: 500;\n    --lib-list-button-font-family: Gilroy-Bold;\n}",
+                    "styleUrl": "../common.styles.css"
+                }
+            ],
             "stylesData": "",
             "extends": [],
-            "templateData": "<div class=\"container\">\n    <lib-list [listItems]=\"payoutItems\" [listTitle]=\"heading\"></lib-list>\n</div>"
+            "templateData": "<div class=\"inner_container\">\n    <lib-list [listItems]=\"payoutItems\" [listTitle]=\"heading\"></lib-list>\n</div>"
         },
         {
             "name": "RulesAndTermsComponent",
-            "id": "component-RulesAndTermsComponent-81672c50ee9dd7fb68795684c753ec389369c3f3e0f4ba86c53fde5c9256e758a0fd709e792e87766b194906964e33986ea9510c835d79d1e80cba1e05cdc130",
+            "id": "component-RulesAndTermsComponent-ff68a4a13cab108681d46bab768b27b515bab7551bc03fa9ea943fbb179301f84671381fa7a42362171d6c0ff130b1cb08772814d3080586ab285a0fc582d818",
             "file": "src/app/modules/user/components/rules-and-terms/rules-and-terms.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
             "entryComponents": [],
             "inputs": [],
             "outputs": [],
             "providers": [],
             "selector": "app-rules-and-terms",
-            "styleUrls": [],
+            "styleUrls": [
+                "./rules-and-terms.component.css",
+                "../common.styles.css"
+            ],
             "styles": [],
             "templateUrl": [
                 "./rules-and-terms.component.html"
@@ -1309,13 +1472,13 @@
             "propertiesClass": [
                 {
                     "name": "listItems",
-                    "defaultValue": "[\n    {\n      label: \"Terms & Conditions\",\n    },\n    {\n      label: \"Privacy Policy\",\n    },\n    {\n      label: \"App Version\",\n    }\n  ]",
+                    "defaultValue": "getRulesAndTermsListItems()",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "ListItemModel[]",
                     "optional": false,
                     "description": "",
-                    "line": 13,
+                    "line": 14,
                     "modifierKind": [
                         125
                     ]
@@ -1328,7 +1491,7 @@
                     "type": "string",
                     "optional": false,
                     "description": "",
-                    "line": 11,
+                    "line": 13,
                     "modifierKind": [
                         125
                     ]
@@ -1344,10 +1507,18 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component } from '@angular/core';\nimport { ListItemModel } from 'nextsapien-component-lib';\n\n@Component({\n  selector: 'app-rules-and-terms',\n  templateUrl: './rules-and-terms.component.html',\n  styleUrl: './rules-and-terms.component.css'\n})\nexport class RulesAndTermsComponent {\n\n  public pageTitle = \"Rules & Terms\";\n\n  public listItems: ListItemModel[] = [\n    {\n      label: \"Terms & Conditions\",\n    },\n    {\n      label: \"Privacy Policy\",\n    },\n    {\n      label: \"App Version\",\n    }\n  ]\n\n}\n",
-            "styleUrl": "./rules-and-terms.component.css",
+            "sourceCode": "import { ChangeDetectionStrategy, Component } from '@angular/core';\nimport { ListItemModel } from 'nextsapien-component-lib';\nimport getRulesAndTermsListItems from './rulesAndTermsListItems';\n\n@Component({\n  selector: 'app-rules-and-terms',\n  templateUrl: './rules-and-terms.component.html',\n  styleUrls: ['./rules-and-terms.component.css', '../common.styles.css'],\n  changeDetection: ChangeDetectionStrategy.OnPush,\n})\nexport class RulesAndTermsComponent {\n\n  public pageTitle = \"Rules & Terms\";\n  public listItems: ListItemModel[] = getRulesAndTermsListItems()\n\n}\n",
             "assetsDirs": [],
-            "styleUrlsData": "",
+            "styleUrlsData": [
+                {
+                    "data": ".content {\n    margin-top: 50px;\n}",
+                    "styleUrl": "./rules-and-terms.component.css"
+                },
+                {
+                    "data": ".container {\n    /* background-color: var(--primary-color); */\n    /* overflow-y: scroll; */\n    max-width: var(--app-max-width);\n    margin: 0 auto;\n}\n\n.header {\n    width: 100%;\n    margin-top: 50px;\n    text-align: center;\n    display: flex;\n    align-items: center;\n}\n\n.main_heading {\n    width: 100%;\n    font-family: Calistoga;\n    font-size: 16px;\n    font-weight: 400;\n    line-height: 26px;\n    letter-spacing: 0em;\n    text-align: center;\n\n}\n\n.inner_container {\n    padding: 0px 40px;\n    max-width: var(--app-max-width);\n    font-family: Gilroy-Regular;\n    --knob-color: #fff;\n    --toggle-background-on: #fe3c72;\n    --toggle-background-off: #29252d;\n    --toggle-box-shadow-on: 0 0 10px #fe3c72;\n    --toggle-box-shadow-off: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);\n}\n\n.section {\n    margin-top: 35px;\n}\n\n.section_content {\n    margin-top: 20px;\n}\n\n.mainActionButton {\n    --lib-list-button-font-size: 16px;\n    --lib-list-button-font-weight: 500;\n    --lib-list-button-font-family: Gilroy-Bold;\n}",
+                    "styleUrl": "../common.styles.css"
+                }
+            ],
             "stylesData": "",
             "extends": [],
             "templateData": "<div class=\"container\">\n\n    <div class=\"header\">\n\n        <lib-icon-btn routerLink=\"/\"><img src=\"assets/icons/back.svg\" alt='back-btn' /></lib-icon-btn>\n        <div class=\"main_heading\">{{pageTitle}}</div>\n\n    </div>\n\n    <div class=\"content\">\n\n        <lib-list [listItems]=\"listItems\"></lib-list>\n\n    </div>\n\n</div>"
@@ -1657,7 +1828,188 @@
                 "defaultValue": "{\n  parameters: {\n    actions: { argTypesRegex: \"^on[A-Z].*\" },\n    controls: {\n      matchers: {\n        color: /(background|color)$/i,\n        date: /Date$/i,\n      },\n    },\n  },\n}"
             }
         ],
-        "functions": [],
+        "functions": [
+            {
+                "name": "getBasicInfoItems",
+                "file": "src/app/modules/user/components/basic-info/basicInfoItems.ts",
+                "ctype": "miscellaneous",
+                "subtype": "function",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "args": [
+                    {
+                        "name": "editEmailCommand",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    }
+                ],
+                "returnType": "ListItemModel[]",
+                "jsdoctags": [
+                    {
+                        "name": "editEmailCommand",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "getNotificationsListItems",
+                "file": "src/app/modules/user/components/notifications-settings/notificationsListItems.ts",
+                "ctype": "miscellaneous",
+                "subtype": "function",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "args": [
+                    {
+                        "name": "inAppNotificationsToggle",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    },
+                    {
+                        "name": "pushNotificationsToggle",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    },
+                    {
+                        "name": "emailNotificationsToggle",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    }
+                ],
+                "returnType": "ListItemModel[]",
+                "jsdoctags": [
+                    {
+                        "name": "inAppNotificationsToggle",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
+                    },
+                    {
+                        "name": "pushNotificationsToggle",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
+                    },
+                    {
+                        "name": "emailNotificationsToggle",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "getOtherListItems",
+                "file": "src/app/modules/user/components/general-settings/listItems.ts",
+                "ctype": "miscellaneous",
+                "subtype": "function",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "args": [
+                    {
+                        "name": "editLanguage",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    },
+                    {
+                        "name": "openRulesAndTerms",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    }
+                ],
+                "returnType": "ListItemModel[]",
+                "jsdoctags": [
+                    {
+                        "name": "editLanguage",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
+                    },
+                    {
+                        "name": "openRulesAndTerms",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "getPayoutListItems",
+                "file": "src/app/modules/user/components/payout/payoutItems.ts",
+                "ctype": "miscellaneous",
+                "subtype": "function",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "args": [],
+                "returnType": "ListItemModel[]"
+            },
+            {
+                "name": "getRulesAndTermsListItems",
+                "file": "src/app/modules/user/components/rules-and-terms/rulesAndTermsListItems.ts",
+                "ctype": "miscellaneous",
+                "subtype": "function",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "args": [],
+                "returnType": "ListItemModel[]"
+            },
+            {
+                "name": "getSecurityAndPrivacyListItems",
+                "file": "src/app/modules/user/components/general-settings/listItems.ts",
+                "ctype": "miscellaneous",
+                "subtype": "function",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "args": [],
+                "returnType": "ListItemModel[]"
+            },
+            {
+                "name": "getTestingListItems",
+                "file": "src/app/modules/user/components/general-settings/listItems.ts",
+                "ctype": "miscellaneous",
+                "subtype": "function",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "description": "",
+                "args": [
+                    {
+                        "name": "testingParticipationToggle",
+                        "deprecated": false,
+                        "deprecationMessage": ""
+                    }
+                ],
+                "returnType": "ListItemModel[]",
+                "jsdoctags": [
+                    {
+                        "name": "testingParticipationToggle",
+                        "deprecated": false,
+                        "deprecationMessage": "",
+                        "tagName": {
+                            "text": "param"
+                        }
+                    }
+                ]
+            }
+        ],
         "typealiases": [
             {
                 "name": "Story",
@@ -1906,7 +2258,198 @@
                 }
             ]
         },
-        "groupedFunctions": {},
+        "groupedFunctions": {
+            "src/app/modules/user/components/basic-info/basicInfoItems.ts": [
+                {
+                    "name": "getBasicInfoItems",
+                    "file": "src/app/modules/user/components/basic-info/basicInfoItems.ts",
+                    "ctype": "miscellaneous",
+                    "subtype": "function",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "args": [
+                        {
+                            "name": "editEmailCommand",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "returnType": "ListItemModel[]",
+                    "jsdoctags": [
+                        {
+                            "name": "editEmailCommand",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "src/app/modules/user/components/notifications-settings/notificationsListItems.ts": [
+                {
+                    "name": "getNotificationsListItems",
+                    "file": "src/app/modules/user/components/notifications-settings/notificationsListItems.ts",
+                    "ctype": "miscellaneous",
+                    "subtype": "function",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "args": [
+                        {
+                            "name": "inAppNotificationsToggle",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        },
+                        {
+                            "name": "pushNotificationsToggle",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        },
+                        {
+                            "name": "emailNotificationsToggle",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "returnType": "ListItemModel[]",
+                    "jsdoctags": [
+                        {
+                            "name": "inAppNotificationsToggle",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        },
+                        {
+                            "name": "pushNotificationsToggle",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        },
+                        {
+                            "name": "emailNotificationsToggle",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "src/app/modules/user/components/general-settings/listItems.ts": [
+                {
+                    "name": "getOtherListItems",
+                    "file": "src/app/modules/user/components/general-settings/listItems.ts",
+                    "ctype": "miscellaneous",
+                    "subtype": "function",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "args": [
+                        {
+                            "name": "editLanguage",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        },
+                        {
+                            "name": "openRulesAndTerms",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "returnType": "ListItemModel[]",
+                    "jsdoctags": [
+                        {
+                            "name": "editLanguage",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        },
+                        {
+                            "name": "openRulesAndTerms",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "getSecurityAndPrivacyListItems",
+                    "file": "src/app/modules/user/components/general-settings/listItems.ts",
+                    "ctype": "miscellaneous",
+                    "subtype": "function",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "args": [],
+                    "returnType": "ListItemModel[]"
+                },
+                {
+                    "name": "getTestingListItems",
+                    "file": "src/app/modules/user/components/general-settings/listItems.ts",
+                    "ctype": "miscellaneous",
+                    "subtype": "function",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "args": [
+                        {
+                            "name": "testingParticipationToggle",
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "returnType": "ListItemModel[]",
+                    "jsdoctags": [
+                        {
+                            "name": "testingParticipationToggle",
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "src/app/modules/user/components/payout/payoutItems.ts": [
+                {
+                    "name": "getPayoutListItems",
+                    "file": "src/app/modules/user/components/payout/payoutItems.ts",
+                    "ctype": "miscellaneous",
+                    "subtype": "function",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "args": [],
+                    "returnType": "ListItemModel[]"
+                }
+            ],
+            "src/app/modules/user/components/rules-and-terms/rulesAndTermsListItems.ts": [
+                {
+                    "name": "getRulesAndTermsListItems",
+                    "file": "src/app/modules/user/components/rules-and-terms/rulesAndTermsListItems.ts",
+                    "ctype": "miscellaneous",
+                    "subtype": "function",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "description": "",
+                    "args": [],
+                    "returnType": "ListItemModel[]"
+                }
+            ]
+        },
         "groupedEnumerations": {},
         "groupedTypeAliases": {
             "src/app/modules/user/components/account/account.stories.ts": [
@@ -2103,7 +2646,7 @@
                 "linktype": "component",
                 "name": "BasicInfoComponent",
                 "coveragePercent": 0,
-                "coverageCount": "0/5",
+                "coverageCount": "0/7",
                 "status": "low"
             },
             {
@@ -2127,12 +2670,22 @@
                 "status": "low"
             },
             {
+                "filePath": "src/app/modules/user/components/basic-info/basicInfoItems.ts",
+                "type": "function",
+                "linktype": "miscellaneous",
+                "linksubtype": "function",
+                "name": "getBasicInfoItems",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
                 "filePath": "src/app/modules/user/components/edit-basic-info/edit-basic-info.component.ts",
                 "type": "component",
                 "linktype": "component",
                 "name": "EditBasicInfoComponent",
                 "coveragePercent": 0,
-                "coverageCount": "0/17",
+                "coverageCount": "0/19",
                 "status": "low"
             },
             {
@@ -2150,7 +2703,7 @@
                 "linktype": "component",
                 "name": "GeneralSettingsComponent",
                 "coveragePercent": 0,
-                "coverageCount": "0/8",
+                "coverageCount": "0/9",
                 "status": "low"
             },
             {
@@ -2169,6 +2722,36 @@
                 "linktype": "miscellaneous",
                 "linksubtype": "variable",
                 "name": "meta",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/modules/user/components/general-settings/listItems.ts",
+                "type": "function",
+                "linktype": "miscellaneous",
+                "linksubtype": "function",
+                "name": "getOtherListItems",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/modules/user/components/general-settings/listItems.ts",
+                "type": "function",
+                "linktype": "miscellaneous",
+                "linksubtype": "function",
+                "name": "getSecurityAndPrivacyListItems",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/modules/user/components/general-settings/listItems.ts",
+                "type": "function",
+                "linktype": "miscellaneous",
+                "linksubtype": "function",
+                "name": "getTestingListItems",
                 "coveragePercent": 0,
                 "coverageCount": "0/1",
                 "status": "low"
@@ -2208,7 +2791,7 @@
                 "linktype": "component",
                 "name": "NotificationsSettingsComponent",
                 "coveragePercent": 0,
-                "coverageCount": "0/5",
+                "coverageCount": "0/7",
                 "status": "low"
             },
             {
@@ -2227,6 +2810,16 @@
                 "linktype": "miscellaneous",
                 "linksubtype": "variable",
                 "name": "meta",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/modules/user/components/notifications-settings/notificationsListItems.ts",
+                "type": "function",
+                "linktype": "miscellaneous",
+                "linksubtype": "function",
+                "name": "getNotificationsListItems",
                 "coveragePercent": 0,
                 "coverageCount": "0/1",
                 "status": "low"
@@ -2261,6 +2854,16 @@
                 "status": "low"
             },
             {
+                "filePath": "src/app/modules/user/components/payout/payoutItems.ts",
+                "type": "function",
+                "linktype": "miscellaneous",
+                "linksubtype": "function",
+                "name": "getPayoutListItems",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
                 "filePath": "src/app/modules/user/components/rules-and-terms/rules-and-terms.component.ts",
                 "type": "component",
                 "linktype": "component",
@@ -2285,6 +2888,16 @@
                 "linktype": "miscellaneous",
                 "linksubtype": "variable",
                 "name": "meta",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
+                "filePath": "src/app/modules/user/components/rules-and-terms/rulesAndTermsListItems.ts",
+                "type": "function",
+                "linktype": "miscellaneous",
+                "linksubtype": "function",
+                "name": "getRulesAndTermsListItems",
                 "coveragePercent": 0,
                 "coverageCount": "0/1",
                 "status": "low"

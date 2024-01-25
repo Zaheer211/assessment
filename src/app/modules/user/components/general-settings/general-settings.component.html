@@ -1,18 +1,21 @@
-<div class="container">
+<div class="inner_container">
 
     <lib-list [listItems]="otherListItems" [listTitle]="'Other'"></lib-list>
 
-    <br><br>
-    <lib-section-separator></lib-section-separator>
-    <br><br>
 
-    <lib-list [listItems]="securityAndPrivacyListItems" [listTitle]="'Security and Privacy'"></lib-list>
+    <div class="section">
+        <lib-section-separator></lib-section-separator>
+        <div class="section_content">
+            <lib-list [listItems]="securityAndPrivacyListItems" [listTitle]="'Security and Privacy'"></lib-list>
+        </div>
+    </div>
 
-    <br><br>
-    <lib-section-separator></lib-section-separator>
-    <br><br>
-
-    <lib-list-toggle [listItems]="testingListItems" [listTitle]="'Testing'"
-        [ngClass]="{'toggleList': true}"></lib-list-toggle>
+    <div class="section">
+        <lib-section-separator></lib-section-separator>
+        <div class="section_content">
+            <lib-list-toggle [listItems]="testingListItems" [listTitle]="'Testing'"
+                [ngClass]="{'toggleList': true}"></lib-list-toggle>
+        </div>
+    </div>
 
 </div>

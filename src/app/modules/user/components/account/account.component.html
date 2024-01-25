@@ -20,7 +20,7 @@
             <div class="matches tertiary_text">
                 32 matches in 88hr 10m
             </div>
-            <lib-list-btn>Instant cash out $453.45</lib-list-btn>
+            <lib-list-btn class="mainActionButton">Instant cash out $453.45</lib-list-btn>
 
             <div class="next_payout tertiary_text">
                 Next payout Sat. Dec 30
@@ -30,33 +30,38 @@
 
     </div>
 
-    <br><br>
-    <lib-section-separator></lib-section-separator>
+    <div class="section">
+        <lib-section-separator></lib-section-separator>
+        <div class="section_content">
+            <app-basic-info></app-basic-info>
+        </div>
+    </div>
 
-    <app-basic-info></app-basic-info>
+    <div class="section">
+        <lib-section-separator></lib-section-separator>
+        <div class="section_content">
+            <app-payout></app-payout>
+        </div>
+    </div>
 
-    <br><br>
+    <div class="section">
+        <lib-section-separator></lib-section-separator>
+        <div class="section_content">
+            <app-notifications-settings></app-notifications-settings>
+        </div>
+    </div>
 
-    <lib-section-separator></lib-section-separator>
+    <div class="section">
+        <lib-section-separator></lib-section-separator>
+        <div class="section_content">
+            <app-general-settings></app-general-settings>
+        </div>
+    </div>
 
-    <app-payout></app-payout>
-
-    <br><br>
-    <lib-section-separator></lib-section-separator>
-    <br><br>
-
-    <app-notifications-settings></app-notifications-settings>
-
-    <br><br>
-    <lib-section-separator></lib-section-separator>
-    <br><br>
-
-    <app-general-settings></app-general-settings>
-
-    <br><br>
-    <lib-section-separator></lib-section-separator>
-    <br><br>
-
-    <app-membership></app-membership>
+    <div class="section">
+        <div class="section_content">
+            <app-membership></app-membership>
+        </div>
+    </div>
 
 </div>

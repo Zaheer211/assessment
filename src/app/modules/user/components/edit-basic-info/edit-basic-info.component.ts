@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, Output, Renderer2 } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject, Subject, filter, takeUntil } from 'rxjs';
-import { EmailValidators } from '../../validators/email-validators';
 
 interface emailFormData {
   email: string;
@@ -11,7 +10,7 @@ interface emailFormData {
 @Component({
   selector: 'app-edit-basic-info',
   templateUrl: './edit-basic-info.component.html',
-  styleUrl: './edit-basic-info.component.css',
+  styleUrls: ['./edit-basic-info.component.css', '../common.styles.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditBasicInfoComponent {
@@ -23,9 +22,7 @@ export class EditBasicInfoComponent {
   public isOpen = false;
   public openEmailEditModal$: Subject<boolean> = new Subject<boolean>();
   private componentDestroy$: Subject<void> = new Subject<void>();
-  public emailForm: FormGroup;
-  public email: FormControl;
-  public password: FormControl;
+  public emailForm!: FormGroup;
   public bottomModalBreakPoints = [0, 0.25, 0.5, 0.75]
   public intialBottomModalBreakPoint = 0.5;
   public onMobile = false;
@@ -36,18 +33,25 @@ export class EditBasicInfoComponent {
     private elementRef: ElementRef,
     private cdr: ChangeDetectorRef
   ) {
-    this.email = new FormControl<string | null>('', [
-      Validators.required,
-      EmailValidators.isEmail(),
-    ]);
-    this.password = new FormControl<string | null>('', [Validators.required]);
-    this.emailForm = this.formBuilder.group({
-      email: this.email,
-      password: this.password,
-    });
+
   }
 
   ngOnInit(): void {
+    this.setupEmailForm();
+    this.setupEmailFormBottomModalOpenSubscription();
+  }
+
+  private setupEmailForm(): void {
+    this.emailForm = this.formBuilder.group({
+      email: new FormControl<string | null>('', [
+        Validators.required,
+        Validators.email,
+      ]),
+      password: new FormControl<string | null>('', [Validators.required]),
+    });
+  }
+
+  private setupEmailFormBottomModalOpenSubscription(): void {
     this.openEmailEditModal$
       .pipe(takeUntil(this.componentDestroy$))
       .subscribe({

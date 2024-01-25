@@ -1,63 +1,34 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ListItemModel } from 'nextsapien-component-lib';
+import { getOtherListItems, getSecurityAndPrivacyListItems, getTestingListItems } from './listItems';
 
 @Component({
   selector: 'app-general-settings',
   templateUrl: './general-settings.component.html',
-  styleUrl: './general-settings.component.css',
+  styleUrls: ['./general-settings.component.css', '../common.styles.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GeneralSettingsComponent {
 
-  public otherListItems: ListItemModel[] = [
-    {
-      label: "Language",
-      value: "lang",
-      actionName: "Edit",
-      command: this.editLanguage.bind(this),
-    },
-    {
-      label: "Rules & Terms",
-      value: "rulesAndTerms",
-      command: this.openRulesAndTerms.bind(this),
-    },
-    {
-      label: "FAQs",
-      value: "faqs"
-    }
-  ]
-
-  public securityAndPrivacyListItems: ListItemModel[] = [
-    {
-      label: "Manage Access and Devices",
-      value: "manageAccessAndDevices",
-      actionName: "Edit",
-    },
-    {
-      label: "Sign Out of All Devices",
-      value: "signOutAllDevices",
-      actionName: "Edit",
-    }
-  ]
-
-  public testingListItems: ListItemModel[] = [
-    {
-      label: "Testing Participation",
-      value: "testingParticipation",
-      actionName: "Toggle",
-      command: this.testingParticipationToggle.bind(this),
-    }
-  ]
+  public otherListItems!: ListItemModel[]
+  public securityAndPrivacyListItems!: ListItemModel[]
+  public testingListItems!: ListItemModel[]
 
   constructor(
     private router: Router
   ) {
+    this.setListItems()
+  }
 
+  private setListItems() {
+    this.otherListItems = getOtherListItems(this.editLanguage.bind(this), this.openRulesAndTerms.bind(this))
+    this.securityAndPrivacyListItems = getSecurityAndPrivacyListItems()
+    this.testingListItems = getTestingListItems(this.testingParticipationToggle.bind(this))
   }
 
   private editLanguage() {
-    console.log("editLanguage");
+    // TODO: Implement language change
   }
 
   private openRulesAndTerms() {
@@ -65,7 +36,7 @@ export class GeneralSettingsComponent {
   }
 
   private testingParticipationToggle() {
-    console.log("testingParticipationToggle");
+    // TODO: Implement testing participation toggle
   }
 
 }

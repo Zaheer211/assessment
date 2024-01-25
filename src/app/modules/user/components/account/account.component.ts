@@ -6,7 +6,7 @@ import { User } from '../../interfaces/user';
 @Component({
   selector: 'app-account',
   templateUrl: './account.component.html',
-  styleUrl: './account.component.css',
+  styleUrls: ['./account.component.css', '../common.styles.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountComponent implements OnInit, OnDestroy {
@@ -37,11 +37,10 @@ export class AccountComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (user) => {
-          console.log(user);
           this.userData = user;
         },
         error: (error) => {
-          console.error(error);
+          // console.error(error);
           // Handle error scenarios
         }
       });

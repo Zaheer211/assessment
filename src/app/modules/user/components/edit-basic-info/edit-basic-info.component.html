@@ -8,15 +8,16 @@
         </p>
 
         <lib-input-field formControlName="email" label="Email" type="email"></lib-input-field>
-        <div class="error" *ngIf="email.touched && email.hasError('required')">
+        <div class="error" *ngIf="emailForm.get('email')?.touched && emailForm.get('email')?.hasError('required')">
             Required
         </div>
-        <div class="error" *ngIf="email.touched && email.hasError('email')">
+        <div class="error" *ngIf="emailForm.get('email')?.touched && emailForm.get('email')?.hasError('email')">
             Invalid email
         </div>
         <br><br>
         <lib-input-field formControlName="password" label="Password" type="password"></lib-input-field>
-        <div class="error" *ngIf="password.touched && password.hasError('required')">
+        <div class="error"
+            *ngIf="emailForm.get('password')?.touched && emailForm.get('password')?.hasError('required')">
             Required
         </div>
         <br><br>

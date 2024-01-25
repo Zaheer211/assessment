@@ -1,0 +1,50 @@
+.container {
+    /* background-color: var(--primary-color); */
+    /* overflow-y: scroll; */
+    max-width: var(--app-max-width);
+    margin: 0 auto;
+}
+
+.header {
+    width: 100%;
+    margin-top: 50px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+}
+
+.main_heading {
+    width: 100%;
+    font-family: Calistoga;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 26px;
+    letter-spacing: 0em;
+    text-align: center;
+
+}
+
+.inner_container {
+    padding: 0px 40px;
+    max-width: var(--app-max-width);
+    font-family: Gilroy-Regular;
+    --knob-color: #fff;
+    --toggle-background-on: #fe3c72;
+    --toggle-background-off: #29252d;
+    --toggle-box-shadow-on: 0 0 10px #fe3c72;
+    --toggle-box-shadow-off: inset 17px 22px 20px 2.5px rgba(17, 16, 20, .7), inset -2px -2px 8px rgba(203, 199, 209, .5);
+}
+
+.section {
+    margin-top: 35px;
+}
+
+.section_content {
+    margin-top: 20px;
+}
+
+.mainActionButton {
+    --lib-list-button-font-size: 16px;
+    --lib-list-button-font-weight: 500;
+    --lib-list-button-font-family: Gilroy-Bold;
+}

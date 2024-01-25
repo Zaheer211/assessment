@@ -1,56 +1,34 @@
 import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { EditBasicInfoComponent } from '../edit-basic-info/edit-basic-info.component';
 import { ListItemModel } from 'nextsapien-component-lib';
+import getBasicInfoItems from './basicInfoItems';
 
 @Component({
   selector: 'app-basic-info',
   templateUrl: './basic-info.component.html',
-  styleUrl: './basic-info.component.css',
+  styleUrls: ['./basic-info.component.css', '../common.styles.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BasicInfoComponent {
 
   @ViewChild(EditBasicInfoComponent) editBasicInfoComponentRef!: EditBasicInfoComponent;
 
-  public basicInfoItems: ListItemModel[] = [
-    {
-      label: "+1234567890",
-      value: "1234567890",
-      labelIconName: "phone",
-    },
-    {
-      label: "someone@mail.omc",
-      value: "1234567890",
-      labelIconName: "email",
-      actionName: "Edit",
-      command: this.editEmail.bind(this)
-    },
-    {
-      label: "Username",
-      value: "1234567890",
-      labelIconName: "name",
-      actionName: "Edit",
-    },
-    {
-      label: "Name",
-      value: "1234567890",
-      labelIconName: "contact",
-      actionName: "Edit"
-    },
-    {
-      label: "Password",
-      value: "1234567890",
-      labelIconName: "lock",
-      actionName: "Edit"
-    }
-  ]
+  public basicInfoItems!: ListItemModel[]
 
-  editEmail(item: any) {
+  constructor() {
+    this.setBasicInfoItems()
+  }
+
+  private setBasicInfoItems() {
+    this.basicInfoItems = getBasicInfoItems(this.editEmail.bind(this))
+  }
+
+  editEmail() {
     this.editBasicInfoComponentRef.openEmailEditModal$.next(true);
   }
 
   onSubmitEmail(emailFormData: { email: string, password: string }) {
-    console.log(emailFormData);
+    // TODO: Handle email update
   }
 
 }

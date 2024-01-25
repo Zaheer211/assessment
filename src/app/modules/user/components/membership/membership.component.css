@@ -3,6 +3,7 @@
 }
 
 .membership_settings {
+    --lib-button-font-color: rgba(168, 168, 168, 1);
     display: flex;
     flex-flow: column;
     gap: 25px;
